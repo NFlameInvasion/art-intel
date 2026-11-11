@@ -23,7 +23,7 @@ SENT = re.compile(r"(?<=[.!?…])\s+")
 
 SCENES = [
     ("hook", "01_hook.wav", "Это видео сделал не человек. Его собрал агент."),
-    ("ui", "02_ui.wav", "Это Qwen. У него появился новый режим — агент."),
+    ("ui", "02_ui.wav", "Это Кьюэн. У него появился новый режим — агент."),
     ("compare", "03_compare.wav", "Чат-бот отвечает текстом. Агент получает задачу и доводит её до результата."),
     ("prompt", "04_prompt.wav", "Одна задача: сделай ролик на русском — сценарий, голос, кадры, субтитры."),
     ("flow", "05_flow.wav", "Задача уходит агенту. Обратно приходит готовый файл."),
@@ -32,7 +32,7 @@ SCENES = [
     ("tools", "08_tools.wav", "Сам выбрал голос и отрисовал полторы тысячи кадров."),
     ("fix", "09_fix.wav", "Ошибка? Прочитал лог, поправил код, пересобрал."),
     ("file", "10_file.wav", "На выходе — готовый файл. Без съёмок и монтажа."),
-    ("outro", "11_outro.wav", "Это не чат-бот. Это режим агента. Подписывайся на Art Intel — здесь про нейросети без воды."),
+    ("outro", "11_outro.wav", "Это не чат-бот. Это режим агента. Подписывайся на Арт Интел."),
 ]
 
 
@@ -101,18 +101,29 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--speaker", default="eugene")
     ap.add_argument("--model", default=MODEL)
+    ap.add_argument("--out", default=None, help="папка для wav (по умолчанию audio/)")
+    ap.add_argument("--speed", type=float, default=1.0, help="ускорение речи (atempo)")
     args = ap.parse_args()
 
     ensure_model(args.model)
     torch.set_num_threads(4)
     model = torch.package.PackageImporter(args.model).load_pickle("tts_models", "model")
 
-    out_dir = os.path.join(ROOT, "audio")
+    out_dir = args.out or os.path.join(ROOT, "audio")
+    if not os.path.isabs(out_dir):
+        out_dir = os.path.join(ROOT, out_dir)
     os.makedirs(out_dir, exist_ok=True)
     for _name, fn, text in SCENES:
         y = synth_sentences(model, text, args.speaker, SR)
-        save_wav(os.path.join(out_dir, fn), y)
-        print(f"{fn:14s} {len(y)/SR:5.2f}s  {text[:46]}…")
+        path = os.path.join(out_dir, fn)
+        dur = len(y) / SR
+        save_wav(path, y)
+        if abs(args.speed - 1.0) > 0.01:
+            tmp = path + ".tmp.wav"
+            os.system(f'ffmpeg -y -v error -i "{path}" -filter:a atempo={args.speed} -ar {SR} "{tmp}"')
+            os.replace(tmp, path)
+            y = np.zeros(1)
+        print(f"{fn:14s} {dur:5.2f}s  {text[:46]}…")
 
 
 if __name__ == "__main__":

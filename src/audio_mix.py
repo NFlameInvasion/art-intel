@@ -5,6 +5,9 @@ import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
 OUT = os.path.join(ROOT, "out")
 TL = json.load(open(os.path.join(ROOT, "timeline.json"), encoding="utf-8"))
+AUDIO_DIR = os.environ.get("AUDIO_DIR") or os.path.join(ROOT, "audio")
+if not os.path.isabs(AUDIO_DIR):
+    AUDIO_DIR = os.path.join(ROOT, AUDIO_DIR)
 SR = 48000
 N = int(TL["total"] * SR) + SR
 
@@ -29,7 +32,7 @@ def highpass(x, cutoff):
 def main():
     voice = np.zeros(N, dtype=np.float32)
     for sc in TL["scenes"]:
-        a = decode(os.path.join(ROOT, "audio", sc["audio"]))
+        a = decode(os.path.join(AUDIO_DIR, sc["audio"]))
         s = int(sc["voice_start"] * SR)
         voice[s:s + len(a)] += a
     voice /= max(1e-6, np.max(np.abs(voice))) / 0.92

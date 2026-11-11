@@ -23,9 +23,11 @@ _fcache, _scache = {}, {}
 def font(kind, size):
     key = (kind, size)
     if key not in _fcache:
-        files = {"disp": "Unbounded-800.ttf", "disp6": "Unbounded-600.ttf",
-                 "b": "Manrope-800.ttf", "sb": "Manrope-600.ttf", "r": "Manrope-400.ttf",
-                 "mono": "JBMono-400.ttf", "monob": "JBMono-700.ttf"}
+        # простой шрифт без изгибов — Arial-совместимый, с кириллицей
+        files = {"disp": "LiberationSans-Bold.ttf", "disp6": "LiberationSans-Bold.ttf",
+                 "b": "LiberationSans-Bold.ttf", "sb": "LiberationSans-Regular.ttf",
+                 "r": "LiberationSans-Regular.ttf",
+                 "mono": "LiberationMono-Regular.ttf", "monob": "LiberationMono-Bold.ttf"}
         _fcache[key] = ImageFont.truetype(os.path.join(FONTS, files[kind]), size)
     return _fcache[key]
 

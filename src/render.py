@@ -311,7 +311,7 @@ def s_outro(img, t, sc):
         s_ = 1 + 0.02 * math.sin(t * 3.2)
         blit(img, rounded(660, 100, 50, LIME, None, 0), CX - 330 * s_, 1000 - (s_ - 1) * 50, a, s_)
         blit_text(img, "Подписаться · Art Intel", "b", 40, CX, 1050, (10, 18, 12), a, s_, anchor="mm")
-    blit_text(img, "telegram · нейросети без воды", "mono", 26, CX, 1140, MUTED,
+    blit_text(img, "telegram · короткие видео про ИИ", "mono", 26, CX, 1140, MUTED,
               appear(t, 4.0, 0.4) * 0.9, anchor="mt")
 
 
@@ -345,7 +345,7 @@ def s_compare(img, t, sc):
     import doodles as dd
     kicker(None, img, "// в чём разница", t)
     rows = [
-        ("ЧАТ-БОТ", "отвечает текстом и ждёт следующего вопроса", MUTED, BORDER, 0.25, (26, 32, 48)),
+        ("ЧАТ-БОТ", "отвечает текстом и ждёт вопроса", MUTED, BORDER, 0.25, (26, 32, 48)),
         ("АГЕНТ", "получает задачу и доводит её до результата", LIME, (56, 84, 62), 2.15, CARD_HI),
     ]
     for i, (name, desc, col, brd, t0, fill) in enumerate(rows):
@@ -358,14 +358,15 @@ def s_compare(img, t, sc):
         blit_text(img, name, "monob", 46, M + dx + 40, y + 46, col, a)
         blit_text(img, desc, "r", 32, M + dx + 40, y + 108, TEXT if i else MUTED, a)
         if i == 0:
-            dd.bubble(img, M + dx + CW - 130, y + 78, 150, 74, t, dot_color=MUTED)
+            dd.bubble(img, M + dx + CW - 120, y + 96, 140, 70, t, dot_color=MUTED)
         else:
             dd.robot(img, M + dx + CW - 140, y + 130, s=0.34, t=t)
+            sx = M + dx + 44
             for j, step in enumerate(["скиллы", "раскадровка", "голос", "монтаж"]):
                 ca = appear(t, t0 + 0.5 + j * 0.3, 0.3)
                 if ca > 0:
-                    blit_text(img, step, "mono", 25, M + dx + 44 + j * 196, y + 208, TEXT,
-                              ca * 0.95)
+                    blit_text(img, step, "mono", 25, sx, y + 208, TEXT, ca * 0.95)
+                sx += measure(step, "mono", 25) + 46
     a = appear(t, 3.0, 0.4)
     if a > 0:
         blit_text(img, "разница — не в ответе, а в результате", "mono", 28, CX, 1230, MUTED,

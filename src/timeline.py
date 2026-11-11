@@ -4,15 +4,17 @@
 import json, re, subprocess, glob, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
-AUD = os.path.join(ROOT, "audio")
+AUD = os.environ.get("AUDIO_DIR") or os.path.join(ROOT, "audio")
+if not os.path.isabs(AUD):
+    AUD = os.path.join(ROOT, AUD)
 FPS = 30
 LEAD = 0.35          # тишина перед первой репликой
-GAP = 0.60           # пауза между сценами
+GAP = 0.50           # пауза между сценами
 TAIL = 1.45          # держим финальный кадр
 
 SCENES = [
     ("hook", "01_hook.wav", "Это видео сделал не человек. Его собрал агент."),
-    ("ui", "02_ui.wav", "Это Qwen. У него появился новый режим — агент."),
+    ("ui", "02_ui.wav", "Это Кьюэн. У него появился новый режим — агент."),
     ("compare", "03_compare.wav", "Чат-бот отвечает текстом. Агент получает задачу и доводит её до результата."),
     ("prompt", "04_prompt.wav", "Одна задача: сделай ролик на русском — сценарий, голос, кадры, субтитры."),
     ("flow", "05_flow.wav", "Задача уходит агенту. Обратно приходит готовый файл."),
@@ -21,7 +23,7 @@ SCENES = [
     ("tools", "08_tools.wav", "Сам выбрал голос и отрисовал полторы тысячи кадров."),
     ("fix", "09_fix.wav", "Ошибка? Прочитал лог, поправил код, пересобрал."),
     ("file", "10_file.wav", "На выходе — готовый файл. Без съёмок и монтажа."),
-    ("outro", "11_outro.wav", "Это не чат-бот. Это режим агента. Подписывайся на Art Intel — здесь про нейросети без воды."),
+    ("outro", "11_outro.wav", "Это не чат-бот. Это режим агента. Подписывайся на Арт Интел."),
 ]
 
 VOWELS = set("аеёиоуыэюяАЕЁИОУЫЭЮЯ")
@@ -173,7 +175,7 @@ YCbCr Matrix: TV.709
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,Manrope ExtraBold,76,&H00FFFFFF,&H00FFFFFF,&H00101418,&H90000000,-1,0,0,0,100,100,0.6,0,1,5,3,2,90,90,430,1
+Style: Cap,Liberation Sans,72,&H00FFFFFF,&H00FFFFFF,&H00101418,&H90000000,-1,0,0,0,100,100,0.6,0,1,5,3,2,90,90,430,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
