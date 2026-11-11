@@ -22,7 +22,10 @@ TAIL = 0.28     # тишина в конце фрагмента
 SENT = re.compile(r"(?<=[.!?…])\s+")
 
 # тексты сцен — один источник правды: script.json
-SCRIPT = json.load(open(os.path.join(ROOT, "script.json"), encoding="utf-8"))
+EP = os.environ.get("EPISODE_DIR") or ROOT
+if not os.path.isabs(EP):
+    EP = os.path.join(ROOT, EP)
+SCRIPT = json.load(open(os.path.join(EP, "script.json"), encoding="utf-8"))
 SCENES = [(s["scene"], s["audio"], s["text"]) for s in SCRIPT["scenes"]]
 
 
@@ -99,7 +102,7 @@ def main():
     torch.set_num_threads(4)
     model = torch.package.PackageImporter(args.model).load_pickle("tts_models", "model")
 
-    out_dir = args.out or os.path.join(ROOT, "audio")
+    out_dir = args.out or os.path.join(EP, "audio")
     if not os.path.isabs(out_dir):
         out_dir = os.path.join(ROOT, out_dir)
     os.makedirs(out_dir, exist_ok=True)

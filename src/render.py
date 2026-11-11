@@ -7,8 +7,12 @@ from gfx import (W, H, CYAN, LIME, RED, TEXT, MUTED, CARD, CARD_HI, BORDER,
                  blit_text, wrap, typewriter, make_bg, make_halo)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
-OUT = os.path.join(ROOT, "out")
-TL = json.load(open(os.path.join(ROOT, "timeline.json"), encoding="utf-8"))
+EP = os.environ.get("EPISODE_DIR") or ROOT
+if not os.path.isabs(EP):
+    EP = os.path.join(ROOT, EP)
+OUT = os.path.join(EP, "out")
+os.makedirs(OUT, exist_ok=True)
+TL = json.load(open(os.path.join(EP, "timeline.json"), encoding="utf-8"))
 FPS = TL["fps"]
 TOTAL = TL["total"]
 NFRAMES = int(round(TOTAL * FPS))
@@ -294,6 +298,160 @@ def s_result(img, t, sc):
           size=28, h=60, color=MUTED, dot=RED)
 
 
+def s_title(img, t, sc):
+    kicker(None, img, "// 30 ноября 2022", t)
+    size = fit_size("CHATGPT", "disp", CW, 190)
+    a = appear(t, 0.18, 0.45)
+    if a > 0:
+        s_ = 0.92 + 0.08 * out_back((t - 0.18) / 0.6)
+        spr = grad_text_sprite("CHATGPT", "disp", size, CYAN, LIME)
+        ox, oy = spr._off
+        wpx = measure("CHATGPT", "disp", size)
+        blit(img, spr, CX - wpx / 2 - ox, 470 - oy, a, s_)
+    blit_text(img, "история одного прототипа", "sb", 44, CX, 680, TEXT,
+              appear(t, 0.9, 0.4), anchor="mt")
+    chips(img, ["OpenAI", "GPT-3.5", "бесплатно"], 800, t, [1.6, 1.9, 2.2], dot=LIME)
+
+
+TIMELINE_ROWS = [("2015", "лаборатория в Сан-Франциско"), ("2018", "GPT-1"),
+                 ("2019", "Microsoft · $1 млрд"), ("2020", "GPT-3"), ("2022", "ChatGPT")]
+
+
+def s_timeline(img, t, sc):
+    kicker(None, img, "// как всё началось", t)
+    for i, (yr, lab) in enumerate(TIMELINE_ROWS):
+        t0 = 0.22 + i * 0.5
+        a = appear(t, t0, 0.35)
+        if a <= 0:
+            continue
+        y = 400 + i * 150
+        dx = (1 - out_cubic((t - t0) / 0.4)) * 30
+        blit(img, rounded(CW, 118, 24, CARD, BORDER, 2), M + dx, y, a)
+        blit_text(img, yr, "monob", 44, M + dx + 34, y + 59, CYAN, a, anchor="lm")
+        blit_text(img, lab, "sb", 32, M + dx + 220, y + 59, TEXT, a, anchor="lm")
+
+
+MODELS = [("GPT-1", "117 млн параметров", 150, ""), ("GPT-2", "1,5 млрд параметров", 420, "×13"),
+          ("GPT-3", "175 млрд параметров", 840, "×117")]
+
+
+def s_models(img, t, sc):
+    kicker(None, img, "// три модели подряд", t)
+    for i, (name, sub, w, mult) in enumerate(MODELS):
+        t0 = 0.25 + i * 0.55
+        a = appear(t, t0, 0.4)
+        if a <= 0:
+            continue
+        y = 460 + i * 240
+        g = out_cubic((t - t0) / 0.9)
+        blit_text(img, name, "monob", 42, M, y, TEXT, a)
+        blit_text(img, sub, "mono", 27, M, y + 54, MUTED, a)
+        ww = max(70, int(w * g))
+        blit(img, rounded(ww, 46, 23, CYAN if i < 2 else LIME, None, 0), M, y + 96, a * 0.95)
+        if mult:
+            blit_text(img, mult, "mono", 26, M + ww + 22, y + 119, MUTED, a)
+
+
+def s_money(img, t, sc):
+    kicker(None, img, "// 2019", t)
+    size = fit_size("$1 МЛРД", "disp", CW, 210)
+    a = appear(t, 0.18, 0.45)
+    if a > 0:
+        s_ = 0.9 + 0.1 * out_back((t - 0.18) / 0.6)
+        blit_text(img, "$1 МЛРД", "disp", size, CX, 440, LIME, a, s_, anchor="mt")
+    blit_text(img, "инвестиции Microsoft", "sb", 44, CX, 720, TEXT, appear(t, 0.9, 0.4), anchor="mt")
+    blit_text(img, "лаборатория становится компанией", "mono", 30, CX, 800, MUTED,
+              appear(t, 1.5, 0.4), anchor="mt")
+
+
+def s_rlhf(img, t, sc):
+    kicker(None, img, "// что решило дело", t)
+    blit_text(img, "RLHF", "disp", 150, M, 420, TEXT, appear(t, 0.15, 0.4))
+    blit_text(img, "обучение на оценках людей", "sb", 40, M, 620, TEXT, appear(t, 0.7, 0.4))
+    steps = ["модель отвечает", "человек ставит оценку", "модель дообучается"]
+    for i, txt in enumerate(steps):
+        a = appear(t, 1.3 + i * 0.55, 0.35)
+        if a <= 0:
+            continue
+        y = 760 + i * 130
+        blit(img, rounded(CW, 96, 24, CARD, BORDER, 2), M, y, a)
+        blit_text(img, str(i + 1), "monob", 32, M + 36, y + 48, LIME, a, anchor="lm")
+        blit_text(img, txt, "sb", 34, M + 100, y + 48, TEXT, a, anchor="lm")
+
+
+def s_chat(img, t, sc):
+    kicker(None, img, "// диалог вместо текста", t)
+    a0 = appear(t, 0.1, 0.4)
+    if a0 > 0:
+        blit(img, rounded(CW, 500, 34, CARD, BORDER, 2), M, 400, a0)
+        blit_text(img, "chat.openai.com", "mono", 24, M + 34, 436, MUTED, a0 * 0.9)
+    a1 = appear(t, 0.5, 0.35)
+    if a1 > 0:
+        blit(img, rounded(620, 96, 24, CARD_HI, BORDER, 2), M + 40, 500, a1)
+        blit_text(img, "объясни, как работает GPT", "sb", 32, M + 68, 548, TEXT, a1, anchor="lm")
+    a2 = appear(t, 1.3, 0.35)
+    if a2 > 0:
+        blit(img, rounded(700, 230, 24, (16, 24, 40), BORDER, 2), M + 40, 620, a2)
+        shown, done = typewriter("Представь, что модель прочитала почти весь интернет и учится предсказывать следующее слово…", t, 1.5, 34)
+        lines = wrap(shown, "sb", 30, 630)
+        yy = 652
+        for ln in lines[:6]:
+            blit_text(img, ln, "sb", 30, M + 68, yy, TEXT, a2)
+            yy += 42
+        if not done and (t * 2) % 1 < 0.6:
+            ImageDraw.Draw(img).rectangle([M + 68, yy + 4, M + 74, yy + 34], fill=CYAN)
+
+
+def s_growth(img, t, sc):
+    kicker(None, img, "// скорость роста", t)
+    blit_text(img, "1 МЛН", "disp", 150, M, 420, LIME, appear(t, 0.15, 0.4))
+    blit_text(img, "пользователей за 5 дней", "sb", 38, M, 600, TEXT, appear(t, 0.7, 0.4))
+    rows = [("ChatGPT", "2 месяца", 300), ("TikTok", "9 месяцев", 840)]
+    for i, (name, dur, w) in enumerate(rows):
+        t0 = 1.5 + i * 0.7
+        a = appear(t, t0, 0.4)
+        if a <= 0:
+            continue
+        y = 780 + i * 200
+        blit_text(img, name, "monob", 38, M, y, TEXT, a)
+        blit_text(img, dur, "mono", 28, M + CW, y + 6, MUTED, a, anchor="rt")
+        g = out_cubic((t - t0) / 0.9)
+        blit(img, rounded(max(60, int(w * g)), 42, 21, CYAN if i == 0 else BORDER, None, 0), M, y + 62, a * 0.95)
+
+
+def s_gpt4(img, t, sc):
+    kicker(None, img, "// 14 марта 2023", t)
+    size = fit_size("GPT-4", "disp", CW, 220)
+    a = appear(t, 0.18, 0.45)
+    if a > 0:
+        s_ = 0.9 + 0.1 * out_back((t - 0.18) / 0.6)
+        blit_text(img, "GPT-4", "disp", size, CX, 430, TEXT, a, s_, anchor="mt")
+    blit_text(img, "следующее поколение", "sb", 44, CX, 720, TEXT, appear(t, 0.9, 0.4), anchor="mt")
+    chips(img, ["текст", "изображения", "код"], 830, t, [1.5, 1.8, 2.1], dot=CYAN)
+
+
+def s_end(img, t, sc):
+    for txt, y, t0 in [("С ЭТОГО", 470, 0.2), ("НАЧАЛОСЬ", 640, 0.45)]:
+        size = fit_size(txt, "disp", CW, 150)
+        a = appear(t, t0, 0.35)
+        if a <= 0:
+            continue
+        s_ = 0.9 + 0.1 * out_back((t - t0) / 0.5)
+        spr = grad_text_sprite(txt, "disp", size, CYAN, LIME)
+        ox, oy = spr._off
+        wpx = measure(txt, "disp", size)
+        blit(img, spr, CX - wpx / 2 - ox + (1 - s_) * wpx / 2, y - oy, a, s_)
+    blit_text(img, "хочешь знать больше о нейросетях?", "sb", 42, CX, 860, TEXT,
+              appear(t, 1.7, 0.4), anchor="mt")
+    a = appear(t, 2.9, 0.4)
+    if a > 0:
+        s_ = 1 + 0.02 * math.sin(t * 3.2)
+        blit(img, rounded(660, 100, 50, LIME, None, 0), CX - 330 * s_, 1010 - (s_ - 1) * 50, a, s_)
+        blit_text(img, "Подписаться · Арт Интел", "b", 40, CX, 1060, (10, 18, 12), a, s_, anchor="mm")
+    blit_text(img, "telegram · короткие видео про ИИ", "mono", 26, CX, 1150, MUTED,
+              appear(t, 3.6, 0.4) * 0.9, anchor="mt")
+
+
 def s_outro(img, t, sc):
     for txt, y, t0 in [("РЕЖИМ", 500, 0.25), ("АГЕНТА", 668, 0.5)]:
         size = fit_size(txt, "disp", CW, 152)
@@ -450,7 +608,10 @@ def s_shot(img, t, sc, key):
         blit_text(img, cap, "mono", 27, CX, chip_y + 27, MUTED, a2, anchor="mm")
 
 
-SHOT_SRC = Image.open(os.path.join(ROOT, "assets", "shots", "qwen_agent_01.jpg")).convert("RGB")
+_shot_path = os.path.join(EP, "assets", "shots", "qwen_agent_01.jpg")
+if not os.path.exists(_shot_path):
+    _shot_path = os.path.join(ROOT, "assets", "shots", "qwen_agent_01.jpg")
+SHOT_SRC = Image.open(_shot_path).convert("RGB")
 _SW, _SH = SHOT_SRC.size
 CARD_H = 860
 CARD_Y = 400
@@ -473,12 +634,29 @@ SHOTS = {
 
 SCENES = {"hook": s_hook, "prompt": s_prompt, "plan": s_plan, "skills": s_skills,
           "tools": s_tools, "fix": s_fix, "result": s_result, "outro": s_outro, "compare": s_compare, "flow": s_flow,
+          "title": s_title, "timeline": s_timeline, "models": s_models, "money": s_money,
+          "rlhf": s_rlhf, "chat": s_chat, "growth": s_growth, "gpt4": s_gpt4, "end": s_end,
           "ui": lambda img, t, sc: s_shot(img, t, sc, "ui"),
           "steps": lambda img, t, sc: s_shot(img, t, sc, "steps"),
           "file": lambda img, t, sc: s_shot(img, t, sc, "file")}
 
 
-SCENE_REF = {"hook": 4.0, "plan": 6.5, "skills": 5.2, "tools": 5.2, "fix": 5.0, "outro": 4.2, "compare": 4.6, "flow": 4.4}
+
+FOOT = {
+    "title": "30 ноября 2022 · первый день",
+    "timeline": "семь лет до взрыва",
+    "models": "от 117 миллионов до 175 миллиардов параметров",
+    "money": "миллиард — и партнёрство с Microsoft",
+    "rlhf": "оценки людей вместо гонки параметров",
+    "chat": "диалог вместо текстового поля",
+    "growth": "быстрее, чем TikTok, Instagram и WhatsApp",
+    "gpt4": "через четыре месяца после запуска",
+    "end": "Art Intel · короткие видео про ИИ",
+}
+
+SCENE_REF = {"hook": 4.0, "plan": 6.5, "skills": 5.2, "tools": 5.2, "fix": 5.0, "outro": 4.2, "compare": 4.6, "flow": 4.4,
+              "title": 3.2, "timeline": 3.2, "models": 2.8, "money": 2.4,
+              "rlhf": 3.2, "chat": 3.2, "growth": 3.8, "gpt4": 2.8, "end": 3.8}
 
 
 def draw_frame(i):
@@ -495,6 +673,11 @@ def draw_frame(i):
     ref = SCENE_REF.get(sc["name"])
     lt_anim = lt * (d / ref) if ref else lt
     hud(img, t, sc)
+    ft = FOOT.get(sc["name"])
+    if ft:
+        fa = appear(lt, 1.15, 0.45)
+        if fa > 0:
+            blit_text(img, ft, "mono", 30, M, 1180, MUTED, fa * 0.9)
     SCENES[sc["name"]](img, lt if sc["name"] in ("ui", "steps", "file") else lt_anim, sc)
     if lt < 0.26:  # быстрый скан-вайп на стыке сцен
         k = lt / 0.26
@@ -507,8 +690,7 @@ def draw_frame(i):
 def stills():
     os.makedirs(OUT, exist_ok=True)
     sc_by = {s["name"]: s for s in TL["scenes"]}
-    picks = {"hook": 0.8, "ui": 0.95, "compare": 0.9, "flow": 0.95, "steps": 0.92,
-             "skills": 0.93, "tools": 0.95, "fix": 0.95, "file": 0.9, "outro": 0.8}
+    picks = {name: 0.9 for name in sc_by}
     for name, frac in picks.items():
         sc = sc_by[name]
         tt = sc["start"] + (sc["end"] - sc["start"]) * frac

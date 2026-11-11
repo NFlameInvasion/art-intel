@@ -4,7 +4,10 @@
 import json, re, subprocess, glob, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
-AUD = os.environ.get("AUDIO_DIR") or os.path.join(ROOT, "audio")
+EP = os.environ.get("EPISODE_DIR") or ROOT
+if not os.path.isabs(EP):
+    EP = os.path.join(ROOT, EP)
+AUD = os.environ.get("AUDIO_DIR") or os.path.join(EP, "audio")
 if not os.path.isabs(AUD):
     AUD = os.path.join(ROOT, AUD)
 FPS = 30
@@ -13,7 +16,7 @@ GAP = 0.35           # пауза между сценами
 TAIL = 1.45          # держим финальный кадр
 
 # тексты сцен — один источник правды: script.json
-SCRIPT = json.load(open(os.path.join(ROOT, "script.json"), encoding="utf-8"))
+SCRIPT = json.load(open(os.path.join(EP, "script.json"), encoding="utf-8"))
 SCENES = [(s["scene"], s["audio"], s["text"]) for s in SCRIPT["scenes"]]
 
 VOWELS = set("аеёиоуыэюяАЕЁИОУЫЭЮЯ")
@@ -196,10 +199,11 @@ if __name__ == "__main__":
     tl = build()
     groups = caption_groups(tl["scenes"])
     tl["captions"] = groups
-    with open(os.path.join(ROOT, "timeline.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(EP, "timeline.json"), "w", encoding="utf-8") as f:
         json.dump(tl, f, ensure_ascii=False, indent=1)
-    write_srt(groups, os.path.join(ROOT, "out", "captions_ru.srt"))
-    write_ass(groups, os.path.join(ROOT, "out", "captions_ru.ass"))
+    os.makedirs(os.path.join(EP, "out"), exist_ok=True)
+    write_srt(groups, os.path.join(EP, "out", "captions_ru.srt"))
+    write_ass(groups, os.path.join(EP, "out", "captions_ru.ass"))
     print(f"TOTAL {tl['total']}s  frames={int(tl['total']*FPS)}")
     for sc in tl["scenes"]:
         print(f"  {sc['name']:7s} {sc['start']:6.2f} → {sc['end']:6.2f}  (voice {sc['voice_start']:.2f}-{sc['voice_end']:.2f}, {len(sc['words'])} слов)")

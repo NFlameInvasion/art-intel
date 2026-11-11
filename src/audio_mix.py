@@ -3,9 +3,13 @@ import json, os, subprocess
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
-OUT = os.path.join(ROOT, "out")
-TL = json.load(open(os.path.join(ROOT, "timeline.json"), encoding="utf-8"))
-AUDIO_DIR = os.environ.get("AUDIO_DIR") or os.path.join(ROOT, "audio")
+EP = os.environ.get("EPISODE_DIR") or ROOT
+if not os.path.isabs(EP):
+    EP = os.path.join(ROOT, EP)
+OUT = os.path.join(EP, "out")
+os.makedirs(OUT, exist_ok=True)
+TL = json.load(open(os.path.join(EP, "timeline.json"), encoding="utf-8"))
+AUDIO_DIR = os.environ.get("AUDIO_DIR") or os.path.join(EP, "audio")
 if not os.path.isabs(AUDIO_DIR):
     AUDIO_DIR = os.path.join(ROOT, AUDIO_DIR)
 SR = 48000

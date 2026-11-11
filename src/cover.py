@@ -7,7 +7,11 @@ from gfx import (W, H, CYAN, LIME, TEXT, MUTED, CARD, BORDER, font, measure, fit
                  rounded, blit, blit_text, grad_text_sprite, make_bg, make_halo, glow_dot)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "out")
+EP = os.environ.get("EPISODE_DIR") or ROOT
+if not os.path.isabs(EP):
+    EP = os.path.join(ROOT, EP)
+OUT = os.path.join(EP, "out")
+os.makedirs(OUT, exist_ok=True)
 M, CW, CX = 72, 936, 540
 
 
