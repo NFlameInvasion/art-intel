@@ -473,8 +473,8 @@ def s_outro(img, t, sc):
     if a > 0:
         s_ = 1 + 0.02 * math.sin(t * 3.2)
         blit(img, rounded(660, 100, 50, LIME, None, 0), CX - 330 * s_, 1000 - (s_ - 1) * 50, a, s_)
-        wpx = measure("Подписаться · Art Intel", "b", 40)
-        blit_block(img, [("Подписаться · Art Intel", "b", 40, (10, 18, 12))],
+        wpx = measure("Подписаться · Арт Интел", "b", 40)
+        blit_block(img, [("Подписаться · Арт Интел", "b", 40, (10, 18, 12))],
                    CX - wpx / 2, 1000, 100, alpha=a)
     blit_text(img, "telegram · короткие видео про ИИ", "mono", 26, CX, 1140, MUTED,
               appear(t, 4.0, 0.4) * 0.9, anchor="mt")
