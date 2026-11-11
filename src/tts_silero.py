@@ -1,64 +1,118 @@
-"""Озвучка сцен локальным нейроголосом Silero (RU, без акцента).
+"""Озвучка сцен нейроголосом Silero (RU). Паузы между фразами, чистые стыки.
 
-python3 src/tts_silero.py --speaker aidar
-Модель качается один раз в voices/v4_ru.pt (40 МБ).
+python3 src/tts_silero.py --speaker eugene --model voices/v5_ru.pt
+Каждая фраза синтезируется отдельно — между предложениями получается ровная пауза,
+а не слипшаяся речь. Края обрезаются по порогу, тихий шум гасится гейтом.
 """
-import argparse, os, wave
+import argparse, os, re, wave
 import numpy as np
 import torch
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL = os.path.join(ROOT, "voices", "v4_ru.pt")
-URL = "https://models.silero.ai/models/tts/ru/v4_ru.pt"
+MODEL = os.path.join(ROOT, "voices", "v5_ru.pt")
+MODEL_V4 = os.path.join(ROOT, "voices", "v4_ru.pt")
+URLS = {MODEL: "https://models.silero.ai/models/tts/ru/v5_ru.pt",
+        MODEL_V4: "https://models.silero.ai/models/tts/ru/v4_ru.pt"}
 SR = 48000
 
-# (файл, текст) — порядок = порядок сцен
+LEAD = 0.15     # тишина в начале фрагмента
+GAP = 0.34      # пауза между предложениями внутри сцены
+TAIL = 0.28     # тишина в конце фрагмента
+
+SENT = re.compile(r"(?<=[.!?…])\s+")
+
 SCENES = [
-    ("01_hook.wav",   "Это видео целиком сделал агент. Сценарий, голос, кадры и монтаж."),
-    ("02_ui.wav",     "Я написал одну строчку — и включил режим агента."),
-    ("03_steps.wav",  "Дальше он работает сам. Пишет сценарий. Подбирает голос. Рисует кадры."),
-    ("04_skills.wav", "Он подключает скиллы — готовые навыки: озвучка, графика, монтаж."),
-    ("05_tools.wav",  "Нужных инструментов нет? Он ставит их сам и запускает рендер."),
-    ("06_fix.wav",    "Ошибка? Он читает лог, правит код и пробует снова. Без меня."),
-    ("07_file.wav",   "Потом проверяет результат и отдаёт готовый файл. Ни камеры, ни лица, ни монтажа вручную."),
-    ("08_outro.wav",  "Это режим агента. Одна задача — и он доводит её до конца."),
+    ("hook", "01_hook.wav", "Это видео сделал не человек. Его собрал агент."),
+    ("ui", "02_ui.wav", "Это Qwen. У него появился новый режим — агент."),
+    ("compare", "03_compare.wav", "Чат-бот отвечает текстом. Агент получает задачу и доводит её до результата."),
+    ("prompt", "04_prompt.wav", "Одна задача: сделай ролик на русском — сценарий, голос, кадры, субтитры."),
+    ("flow", "05_flow.wav", "Задача уходит агенту. Обратно приходит готовый файл."),
+    ("skills", "06_skills.wav", "Скиллы он подключил сам: озвучка, графика, монтаж."),
+    ("steps", "07_steps.wav", "Сам сделал раскадровку: восемь сцен, тайминг по словам."),
+    ("tools", "08_tools.wav", "Сам выбрал голос и отрисовал полторы тысячи кадров."),
+    ("fix", "09_fix.wav", "Ошибка? Прочитал лог, поправил код, пересобрал."),
+    ("file", "10_file.wav", "На выходе — готовый файл. Без съёмок и монтажа."),
+    ("outro", "11_outro.wav", "Это не чат-бот. Это режим агента. Подписывайся на Art Intel — здесь про нейросети без воды."),
 ]
 
 
-def ensure_model():
-    if os.path.exists(MODEL):
+def ensure_model(path):
+    if os.path.exists(path):
         return
-    os.makedirs(os.path.dirname(MODEL), exist_ok=True)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     import urllib.request
+    url = URLS.get(path)
+    if not url:
+        raise FileNotFoundError(f"нет модели {path} и не знаю, откуда качать")
     print("качаю модель Silero…")
-    urllib.request.urlretrieve(URL, MODEL)
+    urllib.request.urlretrieve(url, path)
 
 
-def save_wav(path, audio):
-    x = (audio.numpy() * 32767).astype(np.int16) if hasattr(audio, "numpy") else (audio * 32767).astype(np.int16)
+def trim_edges(x, sr, thresh=0.010, pad_ms=70):
+    """Обрезает тишину по краям, оставляя небольшой запас."""
+    if len(x) == 0:
+        return x
+    idx = np.where(np.abs(x) > thresh)[0]
+    if len(idx) == 0:
+        return np.zeros(int(0.05 * sr), dtype=np.float32)
+    pad = int(pad_ms / 1000 * sr)
+    return x[max(0, idx[0] - pad): min(len(x), idx[-1] + pad)]
+
+
+def denoise_low(x, sr, thresh=0.0045, win_ms=18):
+    """Гейт: окна, где громкость ниже порога (шум между фразами), гасятся в ноль."""
+    win = max(1, int(win_ms / 1000 * sr))
+    n = len(x) // win
+    if n == 0:
+        return x
+    body = x[:n * win].reshape(n, win)
+    rms = np.sqrt((body ** 2).mean(axis=1))
+    gain = np.clip((rms - thresh) / (thresh * 2), 0, 1).astype(np.float32)
+    gain = np.convolve(gain, np.ones(5) / 5, mode="same")
+    return np.concatenate([(body * gain[:, None]).reshape(-1), x[n * win:]]).astype(np.float32)
+
+
+def synth_sentences(model, text, speaker, sr):
+    parts = [p.strip() for p in SENT.split(text) if p.strip()]
+    chunks = []
+    for p in parts:
+        a = model.apply_tts(text=p, speaker=speaker, sample_rate=sr)
+        x = a.numpy().astype(np.float32) if hasattr(a, "numpy") else np.asarray(a, dtype=np.float32)
+        chunks.append(denoise_low(trim_edges(x, sr), sr))
+    out = [np.zeros(int(LEAD * sr), dtype=np.float32)]
+    for i, x in enumerate(chunks):
+        out.append(x)
+        pad = GAP if i < len(chunks) - 1 else TAIL
+        out.append(np.zeros(int(pad * sr), dtype=np.float32))
+    y = np.concatenate(out)
+    peak = float(np.max(np.abs(y)))
+    return y / peak * 0.92 if peak > 0 else y
+
+
+def save_wav(path, x, sr=SR):
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
-        w.setframerate(SR)
-        w.writeframes(x.tobytes())
+        w.setframerate(sr)
+        w.writeframes((np.clip(x, -1, 1) * 32767).astype(np.int16).tobytes())
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--speaker", default="aidar", help="aidar / eugene / baya / kseniya / random")
+    ap.add_argument("--speaker", default="eugene")
     ap.add_argument("--model", default=MODEL)
     args = ap.parse_args()
 
-    ensure_model()
+    ensure_model(args.model)
     torch.set_num_threads(4)
     model = torch.package.PackageImporter(args.model).load_pickle("tts_models", "model")
 
     out_dir = os.path.join(ROOT, "audio")
     os.makedirs(out_dir, exist_ok=True)
-    for fn, text in SCENES:
-        a = model.apply_tts(text=text, speaker=args.speaker, sample_rate=SR)
-        save_wav(os.path.join(out_dir, fn), a)
-        print(f"{fn:14s} {len(a)/SR:5.2f}s  {text[:48]}…")
+    for _name, fn, text in SCENES:
+        y = synth_sentences(model, text, args.speaker, SR)
+        save_wav(os.path.join(out_dir, fn), y)
+        print(f"{fn:14s} {len(y)/SR:5.2f}s  {text[:46]}…")
 
 
 if __name__ == "__main__":

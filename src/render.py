@@ -122,16 +122,16 @@ def s_hook(img, t, sc):
 def s_prompt(img, t, sc):
     kicker(None, img, "// задача", t)
     a = appear(t, 0.12, 0.35)
-    blit(img, rounded(CW, 366, 36, CARD, BORDER, 2), M, 430 + (1 - a) * 22, a)
+    blit(img, rounded(CW, 320, 36, CARD, BORDER, 2), M, 430 + (1 - a) * 22, a)
     if a > 0.2:
         d = ImageDraw.Draw(img)
         d.ellipse([M + 40, 470, M + 100, 530], fill=(34, 48, 80))
         blit_text(img, "ТЫ", "monob", 22, M + 70, 500, CYAN, a, anchor="mm")
         blit_text(img, "ты", "sb", 30, M + 120, 500, MUTED, a, anchor="lm")
         full = "сделай минутный ролик на русском, с озвучкой и субтитрами"
-        shown, done = typewriter(full, t, 0.55, 22)
-        lines = wrap(full, "sb", 46, 856)
-        yy, left = 570, len(shown)
+        shown, done = typewriter(full, t, 0.28, 44)
+        lines = wrap(full, "sb", 44, 856)
+        yy, left = 556, len(shown)
         for ln in lines:
             take = ln[:max(0, left)]
             if take:
@@ -142,7 +142,7 @@ def s_prompt(img, t, sc):
                     d.rectangle([cx, yy + 6, cx + 4, yy + 48], fill=CYAN)
                 break
             left -= len(ln) + 1
-            yy += 64
+            yy += 60
     a2 = appear(t, 3.4, 0.35)
     blit_text(img, "1 сообщение · 0 уточнений", "mono", 30, M, 850, MUTED, a2 * 0.9)
     a3 = appear(t, 3.9, 0.3)
@@ -185,7 +185,7 @@ def s_skills(img, t, sc):
     kicker(None, img, "// скиллы", t)
     size = fit_size("ГОТОВЫЕ НАВЫКИ", "disp6", CW, 66)
     blit_text(img, "ГОТОВЫЕ НАВЫКИ", "disp6", size, M, 410, TEXT, appear(t, 0.1, 0.35))
-    cmd, done = typewriter("npx skills add video-stack", t, 0.5, 30)
+    cmd, done = typewriter("npx skills add video-stack", t, 0.1, 42)
     blit_text(img, "$", "monob", 32, M, 512, LIME, appear(t, 0.4, 0.2))
     blit_text(img, cmd, "mono", 32, M + 34, 512, TEXT, 1)
     if not done:
@@ -195,7 +195,7 @@ def s_skills(img, t, sc):
              ("ГРАФИКА", "кадры и типографика", "gfx"),
              ("МОНТАЖ", "склейка и субтитры", "film")]
     for i, (nm, ds, ic) in enumerate(cards):
-        t0 = 3.0 + i * 0.75
+        t0 = 0.55 + i * 0.55
         a = appear(t, t0, 0.4)
         if a <= 0:
             continue
@@ -309,23 +309,81 @@ def s_outro(img, t, sc):
     a = appear(t, 3.1, 0.4)
     if a > 0:
         s_ = 1 + 0.02 * math.sin(t * 3.2)
-        blit(img, rounded(520, 96, 48, LIME, None, 0), CX - 260 * s_, 1000 - (s_ - 1) * 48, a, s_)
-        blit_text(img, "Сохрани и попробуй", "b", 40, CX, 1048, (10, 18, 12), a, s_, anchor="mm")
-    blit_text(img, "сделано агентом · без съёмок", "mono", 26, CX, 1140, MUTED,
+        blit(img, rounded(660, 100, 50, LIME, None, 0), CX - 330 * s_, 1000 - (s_ - 1) * 50, a, s_)
+        blit_text(img, "Подписаться · Art Intel", "b", 40, CX, 1050, (10, 18, 12), a, s_, anchor="mm")
+    blit_text(img, "telegram · нейросети без воды", "mono", 26, CX, 1140, MUTED,
               appear(t, 4.0, 0.4) * 0.9, anchor="mt")
 
 
-def _shot_card(src, zoom, fx, fy, target_h):
-    """Кроп вокруг фокуса с зумом + ресайз под карточку. Возвращает (img, k, (x0,y0))."""
-    SW, SH = src.size
-    z = max(1.0, zoom)
-    cw, ch = SW / z, SH / z
-    x0 = clamp(fx * SW - cw / 2, 0, SW - cw)
-    y0 = clamp(fy * SH - ch / 2, 0, SH - ch)
-    box = (int(x0), int(y0), int(x0 + cw), int(y0 + ch))
-    out = src.crop(box)
-    scale = target_h / out.height
-    return out.resize((int(out.width * scale), target_h), Image.LANCZOS), scale, (x0, y0)
+def s_flow(img, t, sc):
+    """Мультяшная схема: задача → агент → готовый файл."""
+    import doodles as dd
+    kicker(None, img, "// как это работает", t)
+
+    a1 = appear(t, 0.15, 0.4)
+    if a1 > 0:
+        dd.bubble(img, CX, 428, 640, 100, t, text="сделай ролик")
+
+    a2 = appear(t, 0.8, 0.3)
+    dd.arrow(img, CX, 610, 700, t, a2)
+
+    a3 = appear(t, 1.15, 0.45)
+    if a3 > 0:
+        dd.robot(img, CX, 880, s=0.86, t=t)
+        blit_text(img, "АГЕНТ", "monob", 34, CX, 1084, LIME, a3, anchor="mt")
+
+    a4 = appear(t, 2.4, 0.3)
+    dd.arrow(img, CX, 1150, 1205, t, a4, color=LIME)
+
+    a5 = appear(t, 2.8, 0.45)
+    if a5 > 0:
+        dd.file_icon(img, CX, 1322, s=0.62, t=t, ok=t > 3.4)
+
+
+def s_compare(img, t, sc):
+    """Чат-бот отвечает — агент доводит задачу до результата. С мультяшными иконками."""
+    import doodles as dd
+    kicker(None, img, "// в чём разница", t)
+    rows = [
+        ("ЧАТ-БОТ", "отвечает текстом и ждёт следующего вопроса", MUTED, BORDER, 0.25, (26, 32, 48)),
+        ("АГЕНТ", "получает задачу и доводит её до результата", LIME, (56, 84, 62), 2.15, CARD_HI),
+    ]
+    for i, (name, desc, col, brd, t0, fill) in enumerate(rows):
+        a = appear(t, t0, 0.4)
+        if a <= 0:
+            continue
+        y = 500 + i * 330
+        dx = (1 - out_cubic((t - t0) / 0.45)) * 30
+        blit(img, rounded(CW, 268, 30, fill, brd, 2), M + dx, y, a)
+        blit_text(img, name, "monob", 46, M + dx + 40, y + 46, col, a)
+        blit_text(img, desc, "r", 32, M + dx + 40, y + 108, TEXT if i else MUTED, a)
+        if i == 0:
+            dd.bubble(img, M + dx + CW - 130, y + 78, 150, 74, t, dot_color=MUTED)
+        else:
+            dd.robot(img, M + dx + CW - 140, y + 130, s=0.34, t=t)
+            for j, step in enumerate(["скиллы", "раскадровка", "голос", "монтаж"]):
+                ca = appear(t, t0 + 0.5 + j * 0.3, 0.3)
+                if ca > 0:
+                    blit_text(img, step, "mono", 25, M + dx + 44 + j * 196, y + 208, TEXT,
+                              ca * 0.95)
+    a = appear(t, 3.0, 0.4)
+    if a > 0:
+        blit_text(img, "разница — не в ответе, а в результате", "mono", 28, CX, 1230, MUTED,
+                  a * 0.9, anchor="mt")
+
+
+def _shot_card(src, box, zoom, target_h):
+    """Кроп заданной области (в пикселях исходника) + лёгкий наезд. Возвращает (img, scale, (x0,y0))."""
+    x0, y0, x1, y1 = box
+    cw, ch = (x1 - x0), (y1 - y0)
+    # лёгкий зум внутри кропа
+    zw, zh = cw / zoom, ch / zoom
+    cx, cy = x0 + cw / 2, y0 + ch / 2
+    bx0 = int(clamp(cx - zw / 2, 0, src.width - zw))
+    by0 = int(clamp(cy - zh / 2, 0, src.height - zh))
+    out = src.crop((bx0, by0, int(bx0 + zw), int(by0 + zh)))
+    scale = min(target_h / out.height, CARD_W / out.width)
+    return out.resize((int(out.width * scale), int(out.height * scale)), Image.LANCZOS), scale, (bx0, by0)
 
 
 def s_shot(img, t, sc, key):
@@ -333,9 +391,14 @@ def s_shot(img, t, sc, key):
     d = sc["end"] - sc["start"]
     e = out_cubic(clamp(t / max(d, 0.01)) ** 0.85)
     zoom = k["zoom"][0] + (k["zoom"][1] - k["zoom"][0]) * e
-    fx = k["path"][0][0] + (k["path"][1][0] - k["path"][0][0]) * e
-    fy = k["path"][0][1] + (k["path"][1][1] - k["path"][0][1]) * e
-    shot, scale, off = _shot_card(SHOT_SRC, zoom, fx, fy, CARD_H)
+    shot, scale, off = _shot_card(SHOT_SRC, k["crop"], zoom, k.get("max_h", 900))
+
+    ta = appear(t, 0.05, 0.4)
+    if k.get("title") and ta > 0:
+        size = fit_size(k["title"], "disp6", CW, 78)
+        blit_text(img, k["title"], "disp6", size, M, 430, TEXT, ta)
+        if k.get("sub"):
+            blit_text(img, k["sub"], "mono", 28, M, 520, MUTED, appear(t, 0.3, 0.4) * 0.9)
 
     a = appear(t, 0.08, 0.45)
     if a <= 0:
@@ -348,60 +411,72 @@ def s_shot(img, t, sc, key):
     scrim = Image.new("RGBA", card.size, (0, 0, 0, 0))
     sd = ImageDraw.Draw(scrim)
     for gy in range(card.height):
-        kk = max(0.0, (gy - card.height * 0.62) / (card.height * 0.38))
-        sd.line([(0, gy), (card.width, gy)], fill=(6, 10, 20, int(150 * kk * kk)))
+        kk = max(0.0, (gy - card.height * 0.72) / (card.height * 0.28))
+        sd.line([(0, gy), (card.width, gy)], fill=(6, 10, 20, int(120 * kk * kk)))
     card = Image.alpha_composite(card, scrim)
 
     ImageDraw.Draw(card).rounded_rectangle([1, 1, card.width - 2, card.height - 2], 26,
                                            outline=BORDER + (255,), width=2)
 
-    # подсветка нужной области
+    # подсветка нужной области (координаты — в пикселях исходного скриншота)
     if k.get("ring"):
-        rx0, ry0, rx1, ry1 = [v * scale for v in k["ring"]]
+        rx0, ry0, rx1, ry1 = k["ring"]
         p = clamp((t - k["ring_at"]) / 0.45)
         if p > 0:
             dd = ImageDraw.Draw(card)
             col = LIME + (int(235 * min(1, p * 1.4)),)
-            pad = 6
-            dd.rounded_rectangle([rx0 - off[0] * scale - pad + 2, ry0 - off[1] * scale - pad + 2,
-                                  rx1 - off[0] * scale + pad + 2, ry1 - off[1] * scale + pad + 2],
-                                 10, outline=col, width=max(3, int(4 * min(1, p * 2))))
+            pad = 7
+            dd.rounded_rectangle([(rx0 - off[0]) * scale - pad + 2, (ry0 - off[1]) * scale - pad + 2,
+                                  (rx1 - off[0]) * scale + pad + 2, (ry1 - off[1]) * scale + pad + 2],
+                                 12, outline=col, width=max(4, int(5 * min(1, p * 2))))
 
-    blit(img, card, M, CARD_Y + dy, a)
+    card_y = 620 if k.get("title") else CARD_Y + max(0, (900 - card.height) // 2)
+    blit(img, card, (W - card.width) // 2, card_y + dy, a)
+
+    # нижняя поясняющая строка
+    fa = appear(t, 1.1, 0.45)
+    if k.get("foot") and fa > 0:
+        blit_text(img, k["foot"], "sb", 34, M, 1180, MUTED, fa * 0.95)
 
     # подпись-чип под карточкой
     cap = k.get("label")
     a2 = appear(t, 0.55, 0.4)
     if cap and a2 > 0:
-        wpx = measure(cap, "mono", 26) + 56
-        blit(img, rounded(int(wpx), 52, 26, CARD_HI, BORDER, 2), CX - wpx / 2, CARD_Y + CARD_H + 26, a2)
-        blit_text(img, cap, "mono", 26, CX, CARD_Y + CARD_H + 52, MUTED, a2, anchor="mm")
+        wpx = measure(cap, "mono", 27) + 56
+        chip_y = card_y + card.height + 22
+        blit(img, rounded(int(wpx), 54, 27, CARD_HI, BORDER, 2), CX - wpx / 2, chip_y, a2)
+        blit_text(img, cap, "mono", 27, CX, chip_y + 27, MUTED, a2, anchor="mm")
 
 
 SHOT_SRC = Image.open(os.path.join(ROOT, "assets", "shots", "qwen_agent_01.jpg")).convert("RGB")
 _SW, _SH = SHOT_SRC.size
 CARD_H = 860
 CARD_Y = 400
-CARD_W = int(CARD_H * _SW / _SH)
+CARD_W = 1010
 
 SHOTS = {
-    "ui": dict(zoom=(1.05, 2.20), path=((0.46, 0.55), (0.31, 0.93)),
-               ring=(288, 1140, 478, 1180), ring_at=1.5, label="qwen · режим агента включён"),
-    "steps": dict(zoom=(1.55, 1.85), path=((0.50, 0.15), (0.50, 0.32)),
-                  ring=None, label="реальный лог: 8 шагов, 4 размышления"),
-    "file": dict(zoom=(2.00, 2.18), path=((0.47, 0.37), (0.47, 0.37)),
-                 ring=(308, 404, 900, 480), ring_at=1.1, label="agent_mode_ru_9x16.mp4 · готов"),
+    # нижняя полоса чата: поле ввода + кнопка «Режим агента»
+    "ui": dict(crop=(250, 1052, 1020, 1195), zoom=(1.0, 1.05), title="РЕЖИМ АГЕНТА", sub="новый режим в Qwen Chat", foot="включается кнопкой · задача — одна строка",
+               ring=(288, 1136, 486, 1188), ring_at=1.1,
+               label="qwen · режим агента включён"),
+    # лог шагов агента
+    "steps": dict(crop=(300, 70, 1120, 400), zoom=(1.0, 1.06), title="ВОСЕМЬ ШАГОВ", sub="агент делает их сам", foot="сам ставит пакеты, правит код, перезапускает рендер",
+                  ring=None, label="реальный лог: шаги и размышления"),
+    # карточка готового файла
+    "file": dict(crop=(300, 372, 940, 492), zoom=(1.0, 1.05), title="ГОТОВЫЙ ФАЙЛ", sub="проверен агентом", foot="1080×1920 · 30 fps · 49 секунд",
+                 ring=(308, 380, 900, 486), ring_at=0.9,
+                 label="agent_mode_ru_9x16.mp4 · готов"),
 }
 
 
 SCENES = {"hook": s_hook, "prompt": s_prompt, "plan": s_plan, "skills": s_skills,
-          "tools": s_tools, "fix": s_fix, "result": s_result, "outro": s_outro,
+          "tools": s_tools, "fix": s_fix, "result": s_result, "outro": s_outro, "compare": s_compare, "flow": s_flow,
           "ui": lambda img, t, sc: s_shot(img, t, sc, "ui"),
           "steps": lambda img, t, sc: s_shot(img, t, sc, "steps"),
           "file": lambda img, t, sc: s_shot(img, t, sc, "file")}
 
 
-SCENE_REF = {"hook": 4.85, "plan": 6.5, "skills": 5.15, "tools": 4.8, "fix": 5.2, "outro": 4.2}
+SCENE_REF = {"hook": 4.0, "plan": 6.5, "skills": 5.2, "tools": 5.2, "fix": 5.0, "outro": 4.2, "compare": 4.6, "flow": 4.4}
 
 
 def draw_frame(i):
@@ -430,8 +505,8 @@ def draw_frame(i):
 def stills():
     os.makedirs(OUT, exist_ok=True)
     sc_by = {s["name"]: s for s in TL["scenes"]}
-    picks = {"hook": 0.72, "ui": 0.95, "steps": 0.92, "skills": 0.93,
-             "tools": 0.95, "fix": 0.95, "file": 0.9, "outro": 0.75}
+    picks = {"hook": 0.8, "ui": 0.95, "compare": 0.9, "flow": 0.95, "steps": 0.92,
+             "skills": 0.93, "tools": 0.95, "fix": 0.95, "file": 0.9, "outro": 0.8}
     for name, frac in picks.items():
         sc = sc_by[name]
         tt = sc["start"] + (sc["end"] - sc["start"]) * frac

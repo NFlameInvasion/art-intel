@@ -55,11 +55,11 @@ def main():
                 blk += np.sin(2 * np.pi * f * det * seg + rng.uniform(0, 6)).astype(np.float32)
             blk += 0.25 * np.sin(2 * np.pi * f * 2 * seg).astype(np.float32)
         pad[s:e] += (blk / (len(ch) * 2.6)) * env
-    pad = lowpass(pad, 900) * 0.10
+    pad = lowpass(pad, 900) * 0.07
 
     # --- воздух ---
     air = lowpass(rng.normal(0, 1, N).astype(np.float32), 2400)
-    air = highpass(air, 500) * 0.012 * (0.7 + 0.3 * np.sin(2 * np.pi * t / 9))
+    air = highpass(air, 500) * 0.0  # шум убран: между фразами должна быть тишина
 
     # --- пульс: мягкий кик 90 BPM + шляпка ---
     beat = 60 / 90
@@ -89,21 +89,21 @@ def main():
         nz = rng.normal(0, 1, L).astype(np.float32)
         nz = highpass(nz, 900)
         env = np.sin(np.pi * seg / (L / SR)) ** 2.2
-        whoosh[s:s + L] += nz * env * 0.085
+        whoosh[s:s + L] += nz * env * 0.0  # вуши убраны
     # акцент на финале
     s = int((TL["scenes"][-1]["start"] + 0.1) * SR)
     L = int(0.9 * SR)
     if s + L < N:
         seg = np.arange(L) / SR
         boom = np.sin(2 * np.pi * 46 * seg) * np.exp(-seg * 4.2)
-        whoosh[s:s + L] += boom.astype(np.float32) * 0.20
+        whoosh[s:s + L] += boom.astype(np.float32) * 0.10
 
     music = pad + air + pulse + whoosh
     # музыка тише под речью
     duck = np.ones(N, dtype=np.float32)
     for sc in TL["scenes"]:
         a, b = int((sc["voice_start"] - 0.1) * SR), int((sc["voice_end"] + 0.15) * SR)
-        duck[max(0, a):min(N, b)] = 0.55
+        duck[max(0, a):min(N, b)] = 0.33
     k = int(0.08 * SR)
     duck = np.convolve(duck, np.ones(k) / k, mode="same").astype(np.float32)
     mix = voice + music * duck
