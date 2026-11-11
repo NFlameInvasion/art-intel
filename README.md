@@ -1,0 +1,55 @@
+# Art Intel — вертикальные видео про ИИ без лица
+
+Пайплайн для коротких роликов 1080×1920 (TikTok / YouTube Shorts): сценарий → синтез речи →
+кадры, отрисованные кодом → караоке-субтитры → сведение звука → MP4.
+
+Первый ролик — про **режим агента** в Qwen Chat: агент сам написал сценарий, озвучил,
+отрисовал 1498 кадров, поставил инструменты, поймал ошибку рендера и починил её.
+
+## Что в репозитории
+
+```
+src/timeline.py    тайминги сцен и слов — из реальных аудиофайлов (silencedetect)
+src/gfx.py         графические примитивы: шрифты, свечения, карточки, easing
+src/render.py      отрисовка кадров (Pillow) → ffmpeg → base.mp4
+src/audio_mix.py   сведение голоса с эмбиентом, −14 LUFS / −1.5 dBTP
+audio/             озвучка по сценам (01_hook.wav … 07_outro.wav)
+assets/fonts/      Unbounded, Manrope, JetBrains Mono (кириллица)
+assets/shots/      реальные скриншоты Qwen (кадры «с камерой»)
+out/               результат: MP4, SRT, ASS, обложка
+```
+
+## Сборка
+
+```bash
+python3 -m pip install pillow numpy          # зависимости рендера
+bash build.sh                                # timeline → mix → render
+```
+
+`build.sh` по шагам:
+
+```bash
+python3 src/timeline.py     # timeline.json + out/captions_ru.{srt,ass}
+python3 src/audio_mix.py    # out/mix.wav (голос + музыка), out/voice_only.wav
+python3 src/render.py       # out/base.mp4 (1498 кадров, 30 fps)
+```
+
+Финальный файл — `out/agent_mode_ru_9x16.mp4`, чистая версия без субтитров и музыки —
+`out/agent_mode_ru_9x16_clean.mp4` (для трендового звука в TikTok).
+
+## Правила ролика
+
+- Вертикаль 1080×1920, 30 fps, H.264 high + AAC 192k, `+faststart`.
+- Длина ≤ 60 с (текущий — 49.9 с).
+- Тайминг сцены = длина её аудио + пауза 0.42 с; слова распределены по слогам внутри
+  речевых сегментов, найденных через `silencedetect`, а не «на глаз».
+- Субтитры 2–3 слова, активное слово подсвечивается лаймом; safe zone — верх 180 px, низ 320 px.
+- Звук: голос + тихий синтезированный эмбиент, дакинг под речь, нормализация −14 LUFS.
+
+## Публикация
+
+Описания, заголовки, теги и обложки — в `publish_ru.md`.
+
+## Лицензия
+
+Код — MIT. Шрифты — SIL Open Font License (Unbounded, Manrope, JetBrains Mono).
