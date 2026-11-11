@@ -12,6 +12,7 @@ TL = json.load(open(os.path.join(ROOT, "timeline.json"), encoding="utf-8"))
 FPS = TL["fps"]
 TOTAL = TL["total"]
 NFRAMES = int(round(TOTAL * FPS))
+FRAMES = NFRAMES  # для подписей в кадре
 M, CW, CX = 72, 936, 540
 
 BG = make_bg()
@@ -225,43 +226,43 @@ def s_skills(img, t, sc):
 
 def s_tools(img, t, sc):
     kicker(None, img, "// инструменты", t)
-    terminal(img)
-    tline(img, "$ apt-get install ffmpeg", 530, t, 0.35, CYAN, typed=True)
-    tline(img, "  ✓ ffmpeg 5.1 готов", 586, t, 1.45, LIME)
-    tline(img, "$ pip install pillow", 650, t, 1.75, CYAN, typed=True)
-    tline(img, "  ✓ pillow готов", 706, t, 2.55, LIME)
-    tline(img, "$ render --size 1080x1920 --fps 30", 770, t, 2.85, CYAN, typed=True, cps=48)
-    p = clamp((t - 3.15) / 1.5)
+    terminal(img, y=430, h=470)
+    tline(img, "$ apt-get install ffmpeg", 508, t, 0.30, CYAN, typed=True)
+    tline(img, "  ✓ ffmpeg 5.1 готов", 550, t, 1.15, LIME, size=30)
+    tline(img, "$ pip install pillow", 594, t, 1.45, CYAN, typed=True)
+    tline(img, "  ✓ pillow готов", 636, t, 2.15, LIME, size=30)
+    tline(img, "$ render --size 1080x1920 --fps 30", 678, t, 2.45, CYAN, typed=True, cps=52)
+    p = clamp((t - 2.75) / 1.3)
     if p > 0:
         d = ImageDraw.Draw(img)
-        d.rounded_rectangle([M + 36, 860, M + CW - 36, 880], 10, fill=(24, 34, 58))
-        d.rounded_rectangle([M + 36, 860, M + 36 + int((CW - 72) * p), 880], 10, fill=CYAN)
-        blit_text(img, f"кадры {int(1498*p)}/1498", "mono", 28, M + 36, 906, MUTED)
-        blit_text(img, f"{int(p*100)}%", "monob", 28, M + CW - 36, 906, CYAN, anchor="rt")
-    tline(img, "  ✓ рендер завершён", 980, t, 4.55, LIME)
-    blit_text(img, "ни одного клика мышкой", "mono", 28, M, 1250, MUTED, appear(t, 3.6, 0.4) * 0.9)
+        d.rounded_rectangle([M + 36, 730, M + CW - 36, 748], 9, fill=(24, 34, 58))
+        d.rounded_rectangle([M + 36, 730, M + 36 + int((CW - 72) * p), 748], 9, fill=CYAN)
+        blit_text(img, f"кадры {int(FRAMES*p)}/{FRAMES}", "mono", 26, M + 36, 768, MUTED)
+        blit_text(img, f"{int(p*100)}%", "monob", 26, M + CW - 36, 768, CYAN, anchor="rt")
+    tline(img, "  ✓ рендер завершён", 820, t, 3.9, LIME, size=30)
+    blit_text(img, "ни одного клика мышкой", "mono", 28, M, 960, MUTED, appear(t, 3.2, 0.4) * 0.9)
 
 
 def s_fix(img, t, sc):
     kicker(None, img, "// самопроверка", t)
-    alert = clamp(1 - (t - 1.4) / 1.2) if t < 2.6 else 0.0
-    terminal(img, alert=alert, title="sandbox · bash — retry")
-    tline(img, "✗ Error: шрифт без кириллицы", 530, t, 0.25, RED, size=31)
-    if 0.25 < t < 0.75:
-        f = clamp(1 - (t - 0.25) / 0.5) * 0.16
+    alert = clamp(1 - (t - 1.1) / 1.1) if t < 2.2 else 0.0
+    terminal(img, y=430, h=470, alert=alert, title="sandbox · bash — retry")
+    tline(img, "✗ Error: шрифт без кириллицы", 508, t, 0.20, RED, size=29)
+    if 0.2 < t < 0.65:
+        f = clamp(1 - (t - 0.2) / 0.45) * 0.14
         ov = Image.new("RGB", (W, H), RED)
         img.paste(Image.blend(img, ov, f), (0, 0))
-    tline(img, "→ читаю лог и правлю код", 600, t, 1.55, CYAN, size=31)
-    a = appear(t, 2.9, 0.35)
+    tline(img, "→ читаю лог и правлю код", 550, t, 1.2, CYAN, size=29)
+    a = appear(t, 2.1, 0.35)
     if a > 0:
-        blit(img, rounded(CW - 72, 152, 20, (20, 26, 42), BORDER, 2), M + 36, 664, a)
-        blit(img, rounded(CW - 72, 74, 20, (46, 24, 32), None, 0), M + 36, 665, a * 0.9)
-        blit(img, rounded(CW - 72, 74, 20, (26, 44, 28), None, 0), M + 36, 741, a * 0.9)
-        blit_text(img, "- DejaVuSans.ttf", "mono", 30, M + 68, 702, RED, a, anchor="lm")
-        blit_text(img, "+ Unbounded-800.ttf", "mono", 30, M + 68, 778, LIME, a, anchor="lm")
-    tline(img, "$ retry render", 862, t, 3.95, CYAN, typed=True)
-    tline(img, "  ✓ 1498 кадров · 0 ошибок", 926, t, 4.95, LIME, size=31)
-    blit_text(img, "я не участвовал", "mono", 28, M, 1250, MUTED, appear(t, 5.6, 0.4) * 0.9)
+        blit(img, rounded(CW - 72, 136, 20, (20, 26, 42), BORDER, 2), M + 36, 588, a)
+        blit(img, rounded(CW - 72, 66, 18, (46, 24, 32), None, 0), M + 36, 589, a * 0.9)
+        blit(img, rounded(CW - 72, 66, 18, (26, 44, 28), None, 0), M + 36, 657, a * 0.9)
+        blit_text(img, "- DejaVuSans.ttf", "mono", 28, M + 68, 622, RED, a, anchor="lm")
+        blit_text(img, "+ LiberationSans.ttf", "mono", 28, M + 68, 690, LIME, a, anchor="lm")
+    tline(img, "$ retry render", 748, t, 2.9, CYAN, typed=True)
+    tline(img, f"  ✓ {FRAMES} кадров · 0 ошибок", 804, t, 3.7, LIME, size=28)
+    blit_text(img, "я не участвовал", "mono", 28, M, 960, MUTED, appear(t, 4.1, 0.4) * 0.9)
 
 
 def s_result(img, t, sc):
