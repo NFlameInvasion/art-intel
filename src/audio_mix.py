@@ -2,7 +2,7 @@
 import json, os, subprocess
 import numpy as np
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
 OUT = os.path.join(ROOT, "out")
 TL = json.load(open(os.path.join(ROOT, "timeline.json"), encoding="utf-8"))
 SR = 48000

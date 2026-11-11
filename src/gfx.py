@@ -2,7 +2,7 @@
 import os, math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
 FONTS = os.path.join(ROOT, "assets", "fonts")
 W, H = 1080, 1920
 

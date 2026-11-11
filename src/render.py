@@ -6,7 +6,7 @@ from gfx import (W, H, CYAN, LIME, RED, TEXT, MUTED, CARD, CARD_HI, BORDER,
                  appear, text_sprite, grad_text_sprite, rounded, glow_dot, blit,
                  blit_text, wrap, typewriter, make_bg, make_halo)
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
 OUT = os.path.join(ROOT, "out")
 TL = json.load(open(os.path.join(ROOT, "timeline.json"), encoding="utf-8"))
 FPS = TL["fps"]
@@ -315,8 +315,93 @@ def s_outro(img, t, sc):
               appear(t, 4.0, 0.4) * 0.9, anchor="mt")
 
 
+def _shot_card(src, zoom, fx, fy, target_h):
+    """Кроп вокруг фокуса с зумом + ресайз под карточку. Возвращает (img, k, (x0,y0))."""
+    SW, SH = src.size
+    z = max(1.0, zoom)
+    cw, ch = SW / z, SH / z
+    x0 = clamp(fx * SW - cw / 2, 0, SW - cw)
+    y0 = clamp(fy * SH - ch / 2, 0, SH - ch)
+    box = (int(x0), int(y0), int(x0 + cw), int(y0 + ch))
+    out = src.crop(box)
+    scale = target_h / out.height
+    return out.resize((int(out.width * scale), target_h), Image.LANCZOS), scale, (x0, y0)
+
+
+def s_shot(img, t, sc, key):
+    k = SHOTS[key]
+    d = sc["end"] - sc["start"]
+    e = out_cubic(clamp(t / max(d, 0.01)) ** 0.85)
+    zoom = k["zoom"][0] + (k["zoom"][1] - k["zoom"][0]) * e
+    fx = k["path"][0][0] + (k["path"][1][0] - k["path"][0][0]) * e
+    fy = k["path"][0][1] + (k["path"][1][1] - k["path"][0][1]) * e
+    shot, scale, off = _shot_card(SHOT_SRC, zoom, fx, fy, CARD_H)
+
+    a = appear(t, 0.08, 0.45)
+    if a <= 0:
+        return
+    dy = (1 - out_cubic((t - 0.08) / 0.5)) * 26
+    card = Image.new("RGBA", (shot.width + 4, shot.height + 4), (0, 0, 0, 0))
+    mask = Image.new("L", shot.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, shot.width - 1, shot.height - 1], 26, fill=255)
+    card.paste(shot, (2, 2), mask)
+    scrim = Image.new("RGBA", card.size, (0, 0, 0, 0))
+    sd = ImageDraw.Draw(scrim)
+    for gy in range(card.height):
+        kk = max(0.0, (gy - card.height * 0.62) / (card.height * 0.38))
+        sd.line([(0, gy), (card.width, gy)], fill=(6, 10, 20, int(150 * kk * kk)))
+    card = Image.alpha_composite(card, scrim)
+
+    ImageDraw.Draw(card).rounded_rectangle([1, 1, card.width - 2, card.height - 2], 26,
+                                           outline=BORDER + (255,), width=2)
+
+    # подсветка нужной области
+    if k.get("ring"):
+        rx0, ry0, rx1, ry1 = [v * scale for v in k["ring"]]
+        p = clamp((t - k["ring_at"]) / 0.45)
+        if p > 0:
+            dd = ImageDraw.Draw(card)
+            col = LIME + (int(235 * min(1, p * 1.4)),)
+            pad = 6
+            dd.rounded_rectangle([rx0 - off[0] * scale - pad + 2, ry0 - off[1] * scale - pad + 2,
+                                  rx1 - off[0] * scale + pad + 2, ry1 - off[1] * scale + pad + 2],
+                                 10, outline=col, width=max(3, int(4 * min(1, p * 2))))
+
+    blit(img, card, M, CARD_Y + dy, a)
+
+    # подпись-чип под карточкой
+    cap = k.get("label")
+    a2 = appear(t, 0.55, 0.4)
+    if cap and a2 > 0:
+        wpx = measure(cap, "mono", 26) + 56
+        blit(img, rounded(int(wpx), 52, 26, CARD_HI, BORDER, 2), CX - wpx / 2, CARD_Y + CARD_H + 26, a2)
+        blit_text(img, cap, "mono", 26, CX, CARD_Y + CARD_H + 52, MUTED, a2, anchor="mm")
+
+
+SHOT_SRC = Image.open(os.path.join(ROOT, "assets", "shots", "qwen_agent_01.jpg")).convert("RGB")
+_SW, _SH = SHOT_SRC.size
+CARD_H = 860
+CARD_Y = 400
+CARD_W = int(CARD_H * _SW / _SH)
+
+SHOTS = {
+    "ui": dict(zoom=(1.05, 2.20), path=((0.46, 0.55), (0.31, 0.93)),
+               ring=(288, 1140, 478, 1180), ring_at=1.5, label="qwen · режим агента включён"),
+    "steps": dict(zoom=(1.55, 1.85), path=((0.50, 0.15), (0.50, 0.32)),
+                  ring=None, label="реальный лог: 8 шагов, 4 размышления"),
+    "file": dict(zoom=(2.00, 2.18), path=((0.47, 0.37), (0.47, 0.37)),
+                 ring=(308, 404, 900, 480), ring_at=1.1, label="agent_mode_ru_9x16.mp4 · готов"),
+}
+
+
 SCENES = {"hook": s_hook, "prompt": s_prompt, "plan": s_plan, "skills": s_skills,
-          "tools": s_tools, "fix": s_fix, "result": s_result, "outro": s_outro}
+          "tools": s_tools, "fix": s_fix, "result": s_result, "outro": s_outro,
+          "ui": lambda img, t, sc: s_shot(img, t, sc, "ui"),
+          "steps": lambda img, t, sc: s_shot(img, t, sc, "steps"),
+          "file": lambda img, t, sc: s_shot(img, t, sc, "file")}
+
+
+SCENE_REF = {"hook": 4.85, "plan": 6.5, "skills": 5.15, "tools": 4.8, "fix": 5.2, "outro": 4.2}
 
 
 def draw_frame(i):
@@ -328,8 +413,12 @@ def draw_frame(i):
     blit(img, HALO2, 120 + 60 * math.sin(t * 0.13) - 310, 1450 + 60 * math.cos(t * 0.11) - 310, 0.5)
     sc = next((s for s in TL["scenes"] if s["start"] <= t < s["end"]), TL["scenes"][-1])
     lt = t - sc["start"]
+    d = sc["end"] - sc["start"]
+    # анимации в сцене рассчитаны на «эталонную» длину — подгоняем под реальную озвучку
+    ref = SCENE_REF.get(sc["name"])
+    lt_anim = lt * (d / ref) if ref else lt
     hud(img, t, sc)
-    SCENES[sc["name"]](img, lt, sc)
+    SCENES[sc["name"]](img, lt if sc["name"] in ("ui", "steps", "file") else lt_anim, sc)
     if lt < 0.26:  # быстрый скан-вайп на стыке сцен
         k = lt / 0.26
         y = int(320 + k * 1080)
@@ -340,9 +429,12 @@ def draw_frame(i):
 
 def stills():
     os.makedirs(OUT, exist_ok=True)
-    picks = {"hook": 3.3, "prompt": 9.6, "plan": 17.4, "skills": 23.4,
-             "tools": 28.6, "fix": 34.6, "result": 42.4, "outro": 48.2}
-    for name, tt in picks.items():
+    sc_by = {s["name"]: s for s in TL["scenes"]}
+    picks = {"hook": 0.72, "ui": 0.95, "steps": 0.92, "skills": 0.93,
+             "tools": 0.95, "fix": 0.95, "file": 0.9, "outro": 0.75}
+    for name, frac in picks.items():
+        sc = sc_by[name]
+        tt = sc["start"] + (sc["end"] - sc["start"]) * frac
         img = draw_frame(int(tt * FPS))
         p = os.path.join(OUT, f"still_{name}.png")
         img.save(p)
@@ -352,7 +444,8 @@ def stills():
 def render():
     cmd = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
            "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-           "-i", os.path.join(OUT, "mix_final.wav"),
+           "-i", (os.path.join(OUT, "mix.wav") if os.path.exists(os.path.join(OUT, "mix.wav"))
+                  else os.path.join(OUT, "mix_final.wav")),
            "-c:v", "libx264", "-preset", "veryfast", "-crf", "19", "-pix_fmt", "yuv420p",
            "-profile:v", "high", "-level", "4.1", "-g", "60",
            "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest",
