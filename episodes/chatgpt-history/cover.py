@@ -3,7 +3,8 @@ import os, sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "src"))
 from gfx import (W, H, CYAN, LIME, TEXT, MUTED, CARD, CARD_HI, BORDER, font, measure,
-                 fit_size, rounded, blit, blit_text, grad_text_sprite, make_bg, make_halo, glow_dot)
+                 fit_size, rounded, blit, blit_text, blit_block, grad_text_sprite, make_bg,
+                 make_halo, glow_dot)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 EP = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +20,7 @@ def cover():
 
     blit(img, rounded(360, 62, 31, CARD, BORDER, 2), M, 150)
     blit(img, glow_dot(7, LIME, 10), M + 30, 181, 1.0, anchor="mm")
-    blit_text(img, "ART INTEL", "monob", 28, M + 52, 181, TEXT, 1, anchor="lm")
+    blit_block(img, [("ART INTEL", "monob", 28, TEXT)], M + 52, 150, 62)
     blit_text(img, "короткие видео про ИИ", "mono", 26, W - M, 181, MUTED, 0.85, anchor="rm")
 
     size = fit_size("ИСТОРИЯ", "disp", CW, 150)
@@ -38,11 +39,12 @@ def cover():
     for i, (big, small) in enumerate(stats):
         y = 900 + i * 200
         blit(img, rounded(CW, 160, 28, CARD_HI, BORDER, 2), M, y)
-        blit_text(img, big, "disp", 64, M + 34, y + 52, LIME, 1)
-        blit_text(img, small, "sb", 32, M + 34, y + 118, MUTED, 1)
+        blit_block(img, [(big, "disp", 64, LIME), (small, "sb", 32, MUTED)],
+                   M + 34, y, 160, gap=12)
 
     blit(img, rounded(560, 96, 48, LIME, None, 0), CX - 280, 1620)
-    blit_text(img, "Смотри до конца", "b", 38, CX, 1668, (10, 18, 12), 1, anchor="mm")
+    wpx = measure("Смотри до конца", "b", 38)
+    blit_block(img, [("Смотри до конца", "b", 38, (10, 18, 12))], CX - wpx / 2, 1620, 96)
 
     p = os.path.join(OUT, "cover_1080x1920.png")
     img.save(p)

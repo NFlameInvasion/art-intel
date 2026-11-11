@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 from gfx import (W, H, CYAN, LIME, RED, TEXT, MUTED, CARD, CARD_HI, BORDER,
                  font, measure, fit_size, clamp, out_cubic, out_back, out_expo, pulse,
                  appear, text_sprite, grad_text_sprite, rounded, glow_dot, blit,
-                 blit_text, wrap, typewriter, make_bg, make_halo)
+                 blit_text, blit_block, wrap, typewriter, make_bg, make_halo)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень проекта (файлы лежат в src/)
 EP = os.environ.get("EPISODE_DIR") or ROOT
@@ -13,6 +13,8 @@ if not os.path.isabs(EP):
 OUT = os.path.join(EP, "out")
 os.makedirs(OUT, exist_ok=True)
 TL = json.load(open(os.path.join(EP, "timeline.json"), encoding="utf-8"))
+SCRIPT = json.load(open(os.path.join(EP, "script.json"), encoding="utf-8"))
+HUD_LABEL = SCRIPT.get("hud", "ART INTEL")
 FPS = TL["fps"]
 TOTAL = TL["total"]
 NFRAMES = int(round(TOTAL * FPS))
@@ -37,7 +39,7 @@ def hud(img, t, sc):
     d = ImageDraw.Draw(img)
     blit(img, rounded(292, 60, 30, CARD_HI, (44, 78, 110), 2), M, 196)
     blit(img, glow_dot(8, RED, 12), M + 22, 226, pulse(t, 1.1, 0.45, 1.0), anchor="mm")
-    blit_text(img, "AGENT MODE", "monob", 26, M + 46, 226, CYAN, 1, anchor="lm")
+    blit_text(img, HUD_LABEL, "monob", 26, M + 46, 226, CYAN, 1, anchor="lm")
     tc = f"00:{int(t):02d} / 00:{int(round(TOTAL)):02d}"
     blit_text(img, tc, "mono", 26, W - M, 226, MUTED, 0.85, anchor="rm")
     d.rounded_rectangle([M, 288, M + CW, 294], 3, fill=(26, 38, 62))
@@ -62,7 +64,7 @@ def chips(img, labels, y, t, times, kind="sb", size=30, padx=26, h=66, gap=14,
         if dot:
             blit(img, glow_dot(5, dot, 8), x + padx + 2, y + dy + h / 2, a, anchor="mm")
             tx += 22
-        blit_text(img, l, kind, size, tx, y + dy + h / 2, color, a, anchor="lm")
+        blit_block(img, [(l, kind, size, color)], tx, y + dy, h, alpha=a)
         x += w + gap
 
 
@@ -327,8 +329,8 @@ def s_timeline(img, t, sc):
         y = 400 + i * 150
         dx = (1 - out_cubic((t - t0) / 0.4)) * 30
         blit(img, rounded(CW, 118, 24, CARD, BORDER, 2), M + dx, y, a)
-        blit_text(img, yr, "monob", 44, M + dx + 34, y + 59, CYAN, a, anchor="lm")
-        blit_text(img, lab, "sb", 32, M + dx + 220, y + 59, TEXT, a, anchor="lm")
+        blit_block(img, [(yr, "monob", 44, CYAN)], M + dx + 34, y, 118, alpha=a)
+        blit_block(img, [(lab, "sb", 32, TEXT)], M + dx + 220, y, 118, alpha=a)
 
 
 MODELS = [("GPT-1", "117 млн параметров", 150, ""), ("GPT-2", "1,5 млрд параметров", 420, "×13"),
@@ -375,8 +377,8 @@ def s_rlhf(img, t, sc):
             continue
         y = 760 + i * 130
         blit(img, rounded(CW, 96, 24, CARD, BORDER, 2), M, y, a)
-        blit_text(img, str(i + 1), "monob", 32, M + 36, y + 48, LIME, a, anchor="lm")
-        blit_text(img, txt, "sb", 34, M + 100, y + 48, TEXT, a, anchor="lm")
+        blit_block(img, [(str(i + 1), "monob", 32, LIME)], M + 36, y, 96, alpha=a)
+        blit_block(img, [(txt, "sb", 34, TEXT)], M + 100, y, 96, alpha=a)
 
 
 def s_chat(img, t, sc):
@@ -447,7 +449,9 @@ def s_end(img, t, sc):
     if a > 0:
         s_ = 1 + 0.02 * math.sin(t * 3.2)
         blit(img, rounded(660, 100, 50, LIME, None, 0), CX - 330 * s_, 1010 - (s_ - 1) * 50, a, s_)
-        blit_text(img, "Подписаться · Арт Интел", "b", 40, CX, 1060, (10, 18, 12), a, s_, anchor="mm")
+        wpx = measure("Подписаться · Арт Интел", "b", 40)
+        blit_block(img, [("Подписаться · Арт Интел", "b", 40, (10, 18, 12))],
+                   CX - wpx / 2, 1010, 100, alpha=a)
     blit_text(img, "telegram · короткие видео про ИИ", "mono", 26, CX, 1150, MUTED,
               appear(t, 3.6, 0.4) * 0.9, anchor="mt")
 
@@ -469,7 +473,9 @@ def s_outro(img, t, sc):
     if a > 0:
         s_ = 1 + 0.02 * math.sin(t * 3.2)
         blit(img, rounded(660, 100, 50, LIME, None, 0), CX - 330 * s_, 1000 - (s_ - 1) * 50, a, s_)
-        blit_text(img, "Подписаться · Art Intel", "b", 40, CX, 1050, (10, 18, 12), a, s_, anchor="mm")
+        wpx = measure("Подписаться · Art Intel", "b", 40)
+        blit_block(img, [("Подписаться · Art Intel", "b", 40, (10, 18, 12))],
+                   CX - wpx / 2, 1000, 100, alpha=a)
     blit_text(img, "telegram · короткие видео про ИИ", "mono", 26, CX, 1140, MUTED,
               appear(t, 4.0, 0.4) * 0.9, anchor="mt")
 
@@ -651,7 +657,6 @@ FOOT = {
     "chat": "диалог вместо текстового поля",
     "growth": "быстрее, чем TikTok, Instagram и WhatsApp",
     "gpt4": "через четыре месяца после запуска",
-    "end": "Art Intel · короткие видео про ИИ",
 }
 
 SCENE_REF = {"hook": 4.0, "plan": 6.5, "skills": 5.2, "tools": 5.2, "fix": 5.0, "outro": 4.2, "compare": 4.6, "flow": 4.4,

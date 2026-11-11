@@ -190,6 +190,24 @@ def blit_text(base, text, kind, size, x, y, fill=TEXT, alpha=1.0, scale=1.0,
     blit(base, spr, x, y, alpha, scale, "lt")
 
 
+
+def blit_block(img, lines, x, box_y, box_h, gap=10, alpha=1.0):
+    """Рисует несколько строк, центрируя блок по вертикали внутри рамки.
+
+    lines: [(text, kind, size, color)] — считаем реальную высоту глифов (bbox),
+    а не размер шрифта, поэтому отступы сверху и снизу совпадают.
+    """
+    hs = []
+    for text, kind, size, _color in lines:
+        b = font(kind, size).getbbox(text)
+        hs.append(max(1, b[3] - b[1]))
+    total = sum(hs) + gap * (len(lines) - 1)
+    y = box_y + (box_h - total) / 2
+    for (text, kind, size, color), hgt in zip(lines, hs):
+        blit_text(img, text, kind, size, x, y, color, alpha)
+        y += hgt + gap
+
+
 def wrap(text, kind, size, max_w):
     words, lines, cur = text.split(), [], ""
     for w in words:
