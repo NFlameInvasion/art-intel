@@ -102,6 +102,18 @@ cd - && /usr/bin/python3 src/render_light.py --episode episodes/agent-video
 тёмная плашка «терминала» на шагах, Manrope ExtraBold, один красный акцент (#C05B4D).
 Заголовки слайдов — словарь `HEAD`, «терминальные» сцены — `TERM`.
 
+## Брендбук
+
+`brand/brandbook.html` — исходник, `brand/brandbook.pdf` — 8 страниц A4: палитра, типографика,
+сетка и разметка кадра, четыре типа слайда, субтитры и правила «можно/нельзя».
+
+Сборка PDF:
+
+```bash
+chrome --headless --no-pdf-header-footer --print-to-pdf=brand/brandbook.pdf \
+  --virtual-time-budget=3000 file://$PWD/brand/brandbook.html
+```
+
 ## Публикация
 
 Описания, заголовки, теги и обложки — в `publish_ru.md`.

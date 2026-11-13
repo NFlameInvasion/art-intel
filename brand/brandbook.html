@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Art Intel — брендбук</title>
+<style>
+@font-face{font-family:'Manrope';src:url('../assets/fonts/Manrope-400.ttf');font-weight:400}
+@font-face{font-family:'Manrope';src:url('../assets/fonts/Manrope-600.ttf');font-weight:600}
+@font-face{font-family:'Manrope';src:url('../assets/fonts/Manrope-800.ttf');font-weight:800}
+@font-face{font-family:'JB';src:url('../assets/fonts/JBMono-400.ttf');font-weight:400}
+
+:root{
+  --bg:#F2F1EE; --ink:#14120F; --red:#C05B4D; --pink:#F7C9C4;
+  --dot:#DEDAD2; --card:#FFFFFF; --muted:#7A7368; --dark:#14161A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+@page{size:A4;margin:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Manrope',sans-serif;-webkit-print-color-adjust:exact}
+.page{
+  width:210mm;height:297mm;padding:16mm 15mm;position:relative;overflow:hidden;
+  page-break-after:always;background:
+    radial-gradient(circle at 1px 1px, var(--dot) 1.1px, transparent 1.2px) 0 0/9mm 9mm,
+    var(--bg);
+  display:flex;flex-direction:column;
+}
+.page:last-child{page-break-after:auto}
+.label{font-size:8pt;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8mm}
+h1{font-weight:800;font-size:44pt;line-height:.95;letter-spacing:-.03em}
+h2{font-weight:800;font-size:26pt;line-height:1;letter-spacing:-.02em;margin-bottom:6mm}
+h3{font-weight:800;font-size:14pt;line-height:1.1;margin-bottom:2mm}
+p,li{font-size:10.5pt;line-height:1.45;color:#2B2721}
+.muted{color:var(--muted)}
+.card{background:var(--card);border-radius:9mm;padding:8mm;box-shadow:0 3mm 9mm rgba(20,18,15,.07)}
+.red{color:var(--red)}
+.mono{font-family:'JB',monospace}
+.hr{height:1px;background:#DDD8CF;margin:6mm 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:5mm}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}
+.sw{border-radius:6mm;height:30mm;display:flex;flex-direction:column;justify-content:flex-end;padding:4mm;font-size:8.5pt;font-weight:600}
+.sw span{display:block;font-weight:400;font-size:8pt;opacity:.75}
+.foot{position:absolute;left:15mm;right:15mm;bottom:9mm;display:flex;justify-content:space-between;
+      font-size:8pt;color:var(--muted);border-top:1px solid #E1DCD3;padding-top:3mm}
+.num{font-weight:800;font-size:34pt;line-height:1;color:var(--red)}
+.rule{display:flex;gap:6mm;align-items:flex-start;margin-bottom:7mm}
+.slide{width:47mm;height:83mm;border-radius:4mm;background:var(--card);box-shadow:0 2mm 6mm rgba(20,18,15,.08);
+       position:relative;overflow:hidden;padding:4mm;
+       background-image:radial-gradient(circle at 1px 1px, #EAE6DE 1px, transparent 1.1px);background-size:5mm 5mm;background-color:#F7F6F3}
+.slide .big{font-weight:800;font-size:9pt;line-height:1.05;letter-spacing:-.02em}
+.slide .dark{background:var(--dark);border-radius:2.5mm;height:17mm;margin-bottom:3mm;
+             display:flex;align-items:center;padding:2mm;gap:1mm}
+.slide .dark i{width:1.6mm;height:1.6mm;border-radius:50%;display:block}
+.dont{border:1.5px dashed #D9A29A;border-radius:5mm;padding:4mm;font-size:9pt;color:#8B4A41}
+.do{border:1.5px solid #CFE0CB;border-radius:5mm;padding:4mm;font-size:9pt;color:#3F6B46}
+.cover{justify-content:space-between}
+.cover .mark{font-weight:800;font-size:13pt;letter-spacing:.02em}
+.cover .big{font-weight:800;font-size:74pt;line-height:.86;letter-spacing:-.045em}
+.bar{display:flex;height:9mm;border-radius:4mm;overflow:hidden;margin:4mm 0}
+.bar div{height:100%}
+code{font-family:'JB',monospace;font-size:9pt;background:#E9E6DF;padding:1mm 2mm;border-radius:2mm}
+</style>
+</head>
+<body>
+
+<!-- 1 обложка -->
+<section class="page cover">
+  <div class="top"><div class="mark">ART INTEL</div><div class="label">брендбук · v1.0</div></div>
+  <div>
+    <div class="label" style="margin-bottom:6mm">вертикальные видео про ИИ</div>
+    <div class="big">СВЕТЛЫЙ<br>СТИЛЬ<span class="red">.</span></div>
+    <p style="margin-top:8mm;max-width:120mm;font-size:12pt">
+      Один акцент, крупная типографика, один объект в кадре.
+      Всё, что не несёт смысла, убирается.
+    </p>
+  </div>
+  <div>
+    <div class="hr"></div>
+    <div class="grid3" style="margin-top:4mm">
+      <div><div class="label">формат</div><p>1080 × 1920 · 30 fps</p></div>
+      <div><div class="label">длина</div><p>45–70 секунд</p></div>
+      <div><div class="label">звук</div><p>−14 LUFS · −1.5 dBTP</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>art-intel / brand</span><span>2026</span></div>
+</section>
+
+<!-- 2 идея -->
+<section class="page">
+  <div class="top"><div class="label">01 · идея</div><div class="label">art intel</div></div>
+  <h2>Три правила,<br>на которых держится стиль</h2>
+  <div class="rule"><div class="num">1</div><div>
+    <h3>Один акцент</h3>
+    <p>Белый, чёрный и один красный. Как только появляется второй цвет, кадр перестаёт читаться как «наш».</p></div></div>
+  <div class="rule"><div class="num">2</div><div>
+    <h3>Контраст кеглей</h3>
+    <p>Заголовок занимает треть кадра, подпись — мелкая. Средних размеров нет: они дают «презентацию», а не ролик.</p></div></div>
+  <div class="rule"><div class="num">3</div><div>
+    <h3>Один объект в кадре</h3>
+    <p>Карточка, терминал или строка текста. Не два сразу. Пустое место — часть композиции, а не ошибка.</p></div></div>
+  <div class="card" style="margin-top:auto">
+    <p><b>Проверка кадра:</b> закройте глаза на секунду и откройте. Если взгляд не находит, за что зацепиться за первую секунду, — в кадре лишнее.</p>
+  </div>
+  <div class="foot"><span>01 · идея</span><span>2</span></div>
+</section>
+
+<!-- 3 логотип -->
+<section class="page">
+  <div class="top"><div class="label">02 · знак</div><div class="label">art intel</div></div>
+  <h2>Логотип</h2>
+  <p style="max-width:150mm;margin-bottom:8mm">Знак набран, а не нарисован: Manrope ExtraBold, верхний регистр, трекинг +2%. Это позволяет ставить его в любой кадр без отдельного файла.</p>
+  <div class="card" style="display:flex;align-items:center;justify-content:center;height:70mm">
+    <div style="font-weight:800;font-size:34pt;letter-spacing:.02em">ART INTEL<span class="red">.</span></div>
+  </div>
+  <div class="grid3" style="margin-top:6mm">
+    <div class="card"><div class="label">охрана</div><p>Свободное поле вокруг знака — не меньше высоты буквы «A» со всех сторон.</p></div>
+    <div class="card"><div class="label">минимум</div><p>Не меньше 24 px по высоте в кадре 1080 ролика.</p></div>
+    <div class="card" style="background:var(--dark);color:#F1EFEA"><div class="label" style="color:#9A948A">на тёмном</div>
+      <p style="color:#F1EFEA;margin-top:2mm"><b>ART INTEL<span style="color:#D9776A">.</span></b></p>
+      <p style="color:#9A948A;font-size:9pt">Точка становится светлее на 20%.</p></div>
+  </div>
+  <div class="card" style="margin-top:auto">
+    <p class="muted">Не растягивать, не наклонять, не обводить, не ставить на фото без подложки. Знак не участвует в композиции слайда — он живёт в верхней строке.</p>
+  </div>
+  <div class="foot"><span>02 · знак</span><span>3</span></div>
+</section>
+
+<!-- 4 цвет -->
+<section class="page">
+  <div class="top"><div class="label">03 · цвет</div><div class="label">art intel</div></div>
+  <h2>Палитра</h2>
+  <div class="grid3">
+    <div class="sw" style="background:#F2F1EE">Фон<span>#F2F1EE</span></div>
+    <div class="sw" style="background:#FFFFFF">Карточка<span>#FFFFFF</span></div>
+    <div class="sw" style="background:#14120F;color:#F1EFEA">Текст<span>#14120F</span></div>
+    <div class="sw" style="background:#C05B4D;color:#fff">Акцент<span>#C05B4D</span></div>
+    <div class="sw" style="background:#F7C9C4">Подложка<span>#F7C9C4</span></div>
+    <div class="sw" style="background:#DEDAD2">Точки сетки<span>#DEDAD2</span></div>
+  </div>
+  <h3 style="margin-top:9mm">Пропорции</h3>
+  <div class="bar">
+    <div style="width:70%;background:#F2F1EE;border:1px solid #DDD8CF"></div>
+    <div style="width:20%;background:#14120F"></div>
+    <div style="width:7%;background:#C05B4D"></div>
+    <div style="width:3%;background:#F7C9C4"></div>
+  </div>
+  <p class="muted" style="font-size:9.5pt">70% фон · 20% текст · 7% акцент · 3% подложка. Красного больше 10% — кадр становится тревожным.</p>
+  <div class="grid2" style="margin-top:8mm">
+    <div class="card"><h3 class="red">Красный работает</h3>
+      <p>Номер шага, цифра, активное слово в субтитрах, одна строка в терминале. Всё, на что должен упасть взгляд.</p></div>
+    <div class="card"><h3>Красный не работает</h3>
+      <p>Фон, плашки под длинным текстом, обводки, тени, кнопки «подписаться». Акцент, размазанный по кадру, не акцент.</p></div>
+  </div>
+  <div class="foot"><span>03 · цвет</span><span>4</span></div>
+</section>
+
+<!-- 5 типографика -->
+<section class="page">
+  <div class="top"><div class="label">04 · шрифт</div><div class="label">art intel</div></div>
+  <h2>Типографика</h2>
+  <div class="card">
+    <div class="label">заголовок · manrope 800 · −3% трекинг</div>
+    <div style="font-weight:800;font-size:40pt;line-height:.95;letter-spacing:-.03em;margin:3mm 0 6mm">
+      Агент открыт.<br>А что писать?
+    </div>
+    <div class="hr"></div>
+    <div class="label">подпись · manrope 600 · +18% трекинг, капс</div>
+    <div style="font-weight:600;font-size:9pt;letter-spacing:.18em;text-transform:uppercase;margin:3mm 0 6mm">шаг 02 · консоль и библиотеки</div>
+    <div class="hr"></div>
+    <div class="label">терминал · jetbrains mono 400</div>
+    <div class="mono" style="font-size:11pt;margin-top:3mm">$ mkdir reel<br>$ python3 render.py</div>
+  </div>
+  <div class="grid4" style="margin-top:7mm">
+    <div class="card"><div class="label">h1</div><p><b>112 px</b><br>интерлиньяж 1.05</p></div>
+    <div class="card"><div class="label">h2</div><p><b>88 px</b><br>1.08</p></div>
+    <div class="card"><div class="label">субтитр</div><p><b>66 px</b><br>3 слова в строке</p></div>
+    <div class="card"><div class="label">подпись</div><p><b>30 px</b><br>капс, трекинг</p></div>
+  </div>
+  <div class="foot"><span>04 · шрифт</span><span>5</span></div>
+</section>
+
+<!-- 6 сетка -->
+<section class="page">
+  <div class="top"><div class="label">05 · сетка</div><div class="label">art intel</div></div>
+  <h2>Кадр и карточка</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Поля</h3>
+      <p>Боковые — 64 px. Верхняя строка с знаком и счётчиком — 92 px от верха.<br>Субтитры — не ниже 250 px от низа: там интерфейс площадки.</p>
+      <div class="hr"></div>
+      <h3>Карточка</h3>
+      <p>Радиус 56 px, тень 38 px / 13% чёрного со сдвигом вниз на 18 px. Белая, без обводки.</p>
+    </div>
+    <div>
+      <div class="slide" style="width:100%;height:96mm">
+        <div style="display:flex;justify-content:space-between;font-size:5pt;color:#8A8377;letter-spacing:.1em">
+          <span>ART INTEL</span><span>06 / 16</span></div>
+        <div style="background:#fff;border-radius:4mm;margin-top:4mm;padding:4mm;height:66mm;box-shadow:0 1.5mm 4mm rgba(0,0,0,.06)">
+          <div class="dark"><i style="background:#EB6054"></i><i style="background:#E8BE5C"></i><i style="background:#6CBE78"></i></div>
+          <div class="big">02<br>Консоль<br>и библиотеки</div>
+        </div>
+      </div>
+      <p class="muted" style="font-size:8.5pt;margin-top:2mm">Слайд: шаг с терминалом</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:10mm;align-items:center;margin-top:6mm">
+    <div style="width:46mm;height:82mm;border:1px solid #CFC9BE;border-radius:3mm;background:#FAF9F6;position:relative;flex:none">
+      <div style="position:absolute;left:5.9%;right:5.9%;top:4.8%;bottom:13%;border:1px dashed #C05B4D;border-radius:2mm"></div>
+      <div style="position:absolute;left:7%;top:6%;font-size:5.5pt;color:#C05B4D">64 px</div>
+      <div style="position:absolute;right:7%;top:6%;font-size:5.5pt;color:#C05B4D">92 px</div>
+      <div style="position:absolute;left:5.9%;right:5.9%;bottom:14.5%;text-align:center;font-size:5.2pt;color:#C05B4D">250 px — субтитры</div>
+    </div>
+    <div>
+      <h3>Разметка кадра</h3>
+      <p>Красная пунктирная рамка — рабочая зона. Всё, что выходит за неё: обрезается интерфейсом площадки или перекрывается субтитрами.</p>
+      <p class="muted" style="margin-top:3mm;font-size:9pt">Верхние 92 px занимает строка со знаком и счётчиком сцены. Нижние 250 px — субтитры. Боковые поля по 64 px держат взгляд по центру.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:auto">
+    <p><b>Сетка точек:</b> шаг 48 px, радиус 2 px, цвет #DEDAD2. Она даёт «бумажную» фактуру и не спорит с текстом. Не увеличивать и не делать контрастнее — иначе превращается в узор.</p>
+  </div>
+  <div class="foot"><span>05 · сетка</span><span>6</span></div>
+</section>
+
+<!-- 7 шаблоны -->
+<section class="page">
+  <div class="top"><div class="label">06 · шаблоны</div><div class="label">art intel</div></div>
+  <h2>Четыре типа слайда</h2>
+  <div class="grid4" style="grid-template-columns:repeat(4,1fr)">
+    <div>
+      <div class="slide" style="width:100%">
+        <div style="display:flex;justify-content:space-between;font-size:5pt;color:#8A8377;letter-spacing:.1em"><span>ART INTEL</span><span>01 / 16</span></div>
+        <div style="background:#fff;border-radius:3mm;margin-top:6mm;padding:3mm;height:52mm;display:flex;align-items:center;box-shadow:0 1mm 3mm rgba(0,0,0,.06)">
+          <div class="big" style="font-size:11pt">Агент<br>открыт.<br><span style="color:#C05B4D">А что<br>писать?</span></div>
+        </div>
+      </div>
+      <p class="muted" style="font-size:8pt;margin-top:2mm">Крючок: вопрос + контраст</p>
+    </div>
+    <div>
+      <div class="slide" style="width:100%">
+        <div style="display:flex;justify-content:space-between;font-size:5pt;color:#8A8377;letter-spacing:.1em"><span>ART INTEL</span><span>03 / 16</span></div>
+        <div style="background:#fff;border-radius:3mm;margin-top:5mm;padding:3mm;height:56mm;display:flex;flex-direction:column;justify-content:center;box-shadow:0 1mm 3mm rgba(0,0,0,.06)">
+          <div class="big" style="color:#C05B4D;font-size:14pt">01</div>
+          <div class="big" style="font-size:9pt;margin-top:2mm">Папка<br>ролика</div>
+        </div>
+      </div>
+      <p class="muted" style="font-size:8pt;margin-top:2mm">Шаг: номер красным</p>
+    </div>
+    <div>
+      <div class="slide" style="width:100%">
+        <div style="display:flex;justify-content:space-between;font-size:5pt;color:#8A8377;letter-spacing:.1em"><span>ART INTEL</span><span>06 / 16</span></div>
+        <div style="background:#fff;border-radius:3mm;margin-top:5mm;padding:3mm;height:56mm;box-shadow:0 1mm 3mm rgba(0,0,0,.06)">
+          <div class="dark"><i style="background:#EB6054"></i><i style="background:#E8BE5C"></i><i style="background:#6CBE78"></i></div>
+          <div class="big" style="font-size:8pt">02<br>Консоль<br>и библиотеки</div>
+        </div>
+      </div>
+      <p class="muted" style="font-size:8pt;margin-top:2mm">Шаг с терминалом</p>
+    </div>
+    <div>
+      <div class="slide" style="width:100%">
+        <div style="display:flex;justify-content:space-between;font-size:5pt;color:#8A8377;letter-spacing:.1em"><span>ART INTEL</span><span>16 / 16</span></div>
+        <div style="background:#fff;border-radius:3mm;margin-top:6mm;padding:3mm;height:52mm;display:flex;align-items:center;box-shadow:0 1mm 3mm rgba(0,0,0,.06)">
+          <div class="big" style="font-size:10pt">Промпт —<br>в описании</div>
+        </div>
+      </div>
+      <p class="muted" style="font-size:8pt;margin-top:2mm">Финал: одна короткая мысль</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:auto">
+    <h3>Ритм</h3>
+    <p>Смена слайда — на границе фразы, не реже раза в 4–6 секунд. Крючок — 3 секунды. «Теперь самое важное» — на 35–40% длины: там отваливается внимание.</p>
+  </div>
+  <div class="foot"><span>06 · шаблоны</span><span>7</span></div>
+</section>
+
+<!-- 8 субтитры и правила -->
+<section class="page">
+  <div class="top"><div class="label">07 · субтитры и правила</div><div class="label">art intel</div></div>
+  <h2>Субтитры</h2>
+  <div class="card" style="background:var(--bg);box-shadow:none;border:1px solid #E1DCD3">
+    <div style="font-weight:800;font-size:20pt;text-align:center;letter-spacing:-.02em">
+      Одна папка. <span class="red">Один</span> промпт.
+    </div>
+    <p class="muted" style="text-align:center;font-size:9pt;margin-top:3mm">2–3 слова в строке · 66 px · активное слово #C05B4D · от низа 250 px</p>
+  </div>
+  <div class="grid2" style="margin-top:6mm">
+    <div class="do"><b>Можно</b><p style="margin-top:2mm">Короткие фразы, цифры словами, повелительное наклонение, вопросы к зрителю.</p></div>
+    <div class="dont"><b>Нельзя</b><p style="margin-top:2mm">Латиница в озвучке (Google, TikTok, GPT ломаются), длинные перечисления, два акцента в кадре.</p></div>
+  </div>
+  <h2 style="margin-top:9mm">Как собрать</h2>
+  <div class="card">
+    <p><code>episodes/&lt;slug&gt;/script.json</code> — сцены. Текст, картинка и тайминг берутся оттуда.</p>
+    <p style="margin-top:3mm"><code>python3 src/fill_missing.py --episode episodes/&lt;slug&gt; --max 6</code> — озвучка, дозаписывает недостающие сцены.</p>
+    <p style="margin-top:3mm"><code>python3 src/render_light.py --episode episodes/&lt;slug&gt;</code> — слайды, субтитры, MP4.</p>
+    <div class="hr"></div>
+    <p class="muted" style="font-size:9pt">Заголовки слайдов — словарь <b>HEAD</b>, «терминальные» сцены — <b>TERM</b> в <code>src/render_light.py</code>. Всё остальное — палитра и правила выше.</p>
+  </div>
+  <div class="foot"><span>07 · субтитры и правила</span><span>8</span></div>
+</section>
+
+</body>
+</html>
