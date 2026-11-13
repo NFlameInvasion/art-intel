@@ -60,6 +60,48 @@ python3 src/render.py       # out/base.mp4 (1498 кадров, 30 fps)
 Тайминги нигде не проставляются руками: если текст стал длиннее, аудио стало длиннее,
 сцены и субтитры пересчитаются сами.
 
+## Эпизоды (новый пайплайн, 2026-06)
+
+Каждый ролик — папка `episodes/<slug>/` со своим `script.json`:
+
+```
+episodes/agent-video/script.json   сцены: scene, audio, text
+episodes/agent-video/audio_vosk/   озвучка по сценам (в git не попадает)
+episodes/agent-video/out/          slides/, part_*.mp4, captions.ass, final.mp4
+```
+
+Сборка одного ролика:
+
+```bash
+# 1. озвучка локальным русским голосом (Vosk TTS, 5 дикторов, male_0 = 3)
+python3 src/fill_missing.py --episode episodes/agent-video --max 6   # дозаписывает недостающие сцены
+# 2. склейка + −16 LUFS
+cd episodes/agent-video && ffmpeg -f concat -safe 0 -i list.txt \
+  -af "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000" -ar 48000 -ac 1 \
+  -c:a libmp3lame -b:a 128k voice_agent_video.mp3
+# 3. рендер в светлом стиле + караоке-субтитры
+cd - && /usr/bin/python3 src/render_light.py --episode episodes/agent-video
+```
+
+Что важно знать:
+
+- **Память.** Vosk-модель ~750 МБ, процесс убивает при ~950 МБ RSS. `fill_missing.py`
+  берёт по нескольку сцен за запуск и продолжает с места обрыва, поэтому его можно
+  гонять в цикле. Без swap на 1.9 ГБ машине он падает на загрузке модели.
+- **Кавычки.** Vosk падает с `KeyError: '»'` на типографских кавычках — `tts_vosk.clean()`
+  их вырезает. Писать текст можно как обычно.
+- **Латиница.** И Silero, и edge-tts, и Vosk ломают латинские названия: «Google»
+  превращается в «вучат», «TikTok» исчезает. В тексте для озвучки — только кириллица:
+  «в Гугле», «ТикТок», «джи-пи-ти».
+- **Субтитры.** `render_light.py` берёт пословные тайминги из faster-whisper по готовому
+  аудио, а не делит время сцены поровну — иначе к концу фразы караоке отстаёт.
+  Передавать в `transcribe()` надо numpy-массив: с этой сборкой PyAV путь к файлу
+  падает на `metadata_errors`.
+
+Стиль `render_light.py`: тёплый белый фон с сеткой точек, белая карточка с мягкой тенью,
+тёмная плашка «терминала» на шагах, Manrope ExtraBold, один красный акцент (#C05B4D).
+Заголовки слайдов — словарь `HEAD`, «терминальные» сцены — `TERM`.
+
 ## Публикация
 
 Описания, заголовки, теги и обложки — в `publish_ru.md`.
