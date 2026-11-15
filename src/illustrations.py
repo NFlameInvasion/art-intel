@@ -1212,6 +1212,12 @@ def timeline_mess(t, dur, g1, g2, rms=None):
     # плейхед
     ph = 180 + (t / max(0.01, dur)) * 760
     out.append(line(ph, 366, ph, 736, "#FF8A3D", 2, 0.9))
+    # перетаскиваемый клип и курсор
+    dx = 200 + 620 * ((t * 0.22) % 1.0)
+    dy = 556 + 16 * math.sin(t * 3)
+    out.append(rect(dx, dy, 96, 40, 6, "url(#acc)", op=0.9))
+    out.append(f'<path d="M {dx+30:.1f} {dy+34:.1f} l 6 26 l 7 -10 l 12 2 z" fill="#FFFFFF" '
+               f'stroke="#1B1035" stroke-width="2" opacity="0.95"/>')
     clock = 2 * 3600 + 14 * 60 + int(t * 37)
     out.append(txt(946, 322, f"{clock // 3600:02d}:{clock % 3600 // 60:02d}:{clock % 60:02d}",
                    22, DIM, 0.75, "end", 3, 600))
@@ -1249,6 +1255,10 @@ def cc_logo(t, dur, g1, g2, rms=None):
     w, h = 780 * (0.94 + 0.06 * min(1, p)), 320
     x, y = 540 - w / 2, 430
     out.append(rect(x, y, w, h, 32, "none", BG_INK, 2, 0.4 * min(1, p)))
+    ang = (t * 40) % 360
+    out.append(f'<circle cx="540" cy="{y + h/2:.0f}" r="250" fill="none" stroke="url(#acc)" '
+               f'stroke-width="3" stroke-dasharray="14 22" opacity="0.35" '
+               f'transform="rotate({ang:.1f} 540 {y + h/2:.0f})"/>')
     out.append(txt(x + 30, y + 52, "CLAUDE", 30, DIM, 0.85, "start", 6, 700, "Unbounded"))
     out.append(txt(540, y + 168, "CLAUDE CODE", 62, "url(#acc)", min(1, p), "middle", 4, 800, "Unbounded"))
     out.append(rect(x + 30, y + 216, 168, 44, 22, "none", BG_INK, 2, 0.5))
@@ -1259,20 +1269,24 @@ def cc_logo(t, dur, g1, g2, rms=None):
 
 def _skill_rows(t, active, dur):
     out = []
-    names = ["FFMPEG", "REMOTION", "TRANSCRIPT"]
-    subs = ["нарезка · паузы · звук", "субтитры · переходы", "хуки · тайминг"]
+    names = ["FFMPEG", "WHISPER", "REMOTION", "TTS"]
+    subs = ["нарезка · паузы · звук", "слова · тайминги",
+            "субтитры · анимация", "голос"]
     for i, nm in enumerate(names):
-        p = out_cubic(seg(t, 0.08 + i * 0.12, 0.4))
+        p = out_cubic(seg(t, 0.06 + i * 0.1, 0.35))
         if p <= 0:
             continue
-        y = 380 + i * 140
+        y = 336 + i * 106
         on = i == active
-        out.append(rect(100, y, 780, 118, 20,
+        out.append(rect(100, y, 780, 96, 18,
                         "url(#acc)" if on else "none", None if on else BG_INK,
                         0 if on else 2, 0.92 if on else 0.4))
         col = "#1B1035" if on else BG_INK
-        out.append(txt(130, y + 56, nm, 30, col, 0.95 * p, "start", 4, 800, "JetBrains Mono"))
-        out.append(txt(130, y + 94, subs[i], 20, col, 0.7 * p, "start", 1, 500, "Manrope"))
+        out.append(txt(126, y + 44, nm, 26, col, 0.95 * p, "start", 3, 800, "JetBrains Mono"))
+        out.append(txt(126, y + 76, subs[i], 18, col, 0.7 * p, "start", 1, 500, "Manrope"))
+        sx = 100 + ((t * 420 + i * 180) % 900) - 120
+        out.append(rect(max(100, sx), y + 6, min(60, 880 - max(0, sx - 100)), 88, 14,
+                        "#FFFFFF", op=0.05 if on else 0.035))
     return out
 
 
@@ -1284,8 +1298,16 @@ def skill_ffmpeg(t, dur, g1, g2, rms=None):
     return _skill_rows(t, 0, dur)
 
 
-def skill_remotion(t, dur, g1, g2, rms=None):
+def skill_whisper(t, dur, g1, g2, rms=None):
     return _skill_rows(t, 1, dur)
+
+
+def skill_remotion(t, dur, g1, g2, rms=None):
+    return _skill_rows(t, 2, dur)
+
+
+def skill_tts(t, dur, g1, g2, rms=None):
+    return _skill_rows(t, 3, dur)
 
 
 def skill_transcript(t, dur, g1, g2, rms=None):
@@ -1298,22 +1320,26 @@ def render_cmd(t, dur, g1, g2, rms=None):
     p = out_cubic(seg(t, 0.08, 0.4))
     if p <= 0:
         return out
-    out.append(rect(100, 360, 880 * min(1, p), 340, 18, "#000000", BG_INK, 2, 0.25))
+    out.append(rect(100, 360, 880 * min(1, p), 320, 18, "#000000", BG_INK, 2, 0.25))
     if p > 0.8:
         for k in range(3):
             out.append(circle(132 + k * 24, 392, 6, BG_INK, op=0.3))
+        out.append(txt(946, 398, "папка проекта · input.mp4", 17, DIM, 0.55, "end", 1, 500, "Manrope"))
+    prompt = "> нарежь, убери паузы, поставь субтитры"
+    n = int(max(0, t - 0.2) * 46)
+    out.append(txt(134, 452, prompt[:n], 22, BG_INK, 0.95, "start", 0, 500))
     cmd = "$ npm run build"
-    n = int(max(0, t - 0.35) * 44)
-    out.append(txt(134, 470, cmd[:n], 26, "url(#acc)", 0.95, "start", 0, 600))
-    q = out_cubic(seg(t, 0.9, 1.6))
+    n2 = int(max(0, t - 1.15) * 44)
+    out.append(txt(134, 512, cmd[:n2], 24, "url(#acc)", 0.95, "start", 0, 600))
+    q = out_cubic(seg(t, 1.6, 1.6))
     if q > 0:
         bw = 700
-        out.append(rect(134, 520, bw, 18, 9, BG_INK, op=0.12))
-        out.append(rect(134, 520, bw * q, 18, 9, "url(#acc)", op=0.95))
-        out.append(txt(134, 585, f"рендер {int(q * 100)}%", 22, DIM, 0.85, "start", 2, 500))
-    r = out_expo(seg(t, 2.4, 0.5))
+        out.append(rect(134, 556, bw, 16, 8, BG_INK, op=0.12))
+        out.append(rect(134, 556, bw * q, 16, 8, "url(#acc)", op=0.95))
+        out.append(txt(134, 606, f"рендер {int(q * 100)}%", 20, DIM, 0.85, "start", 2, 500))
+    r = out_expo(seg(t, 3.2, 0.5))
     if r > 0:
-        out.append(txt(134, 655, "✓ final_reel.mp4", 26, "url(#acc)", 0.95 * r, "start", 1, 700, "Manrope"))
+        out.append(txt(134, 652, "✓ final_reel.mp4", 24, "url(#acc)", 0.95 * r, "start", 1, 700, "Manrope"))
     return out
 
 
@@ -1327,6 +1353,7 @@ def result(t, dur, g1, g2, rms=None):
     x, y = 540 - w / 2, 400
     out.append(rect(x, y, w, h, 26, "none", BG_INK, 2, 0.45))
     out.append(rect(x + 24, y + 24, 250, 190, 16, "#000000", BG_INK, 2, 0.25))
+    out.append(circle(x + 149, y + 120, 44 + 8 * math.sin(t * 3.2), "none", "url(#acc)", 2, 0.35))
     out.append(f'<path d="M {x+164} {y+100} L {x+164} {y+140} L {x+196} {y+120} Z" fill="url(#acc)" opacity="0.95"/>')
     out.append(txt(x + 300, y + 74, "final_reel.mp4", 26, BG_INK, 0.95, "start", 0, 700, "Manrope"))
     out.append(txt(x + 300, y + 116, "30.0 s · 1080×1920", 20, DIM, 0.8, "start", 2, 500))
@@ -1360,9 +1387,33 @@ def nope(t, dur, g1, g2, rms=None):
     return out
 
 
+def iterate(t, dur, g1, g2, rms=None):
+    """Правка словами: сказал — получил новый файл."""
+    out = []
+    p = out_cubic(seg(t, 0.1, 0.4))
+    if p > 0:
+        out.append(_card(100, 400, 400, 130, p, 0.25))
+        out.append(txt(126, 442, "ты", 15, DIM, 0.8 * p, "start", 4, 700))
+        out.append(txt(126, 486, "сделай тише музыку", 24, BG_INK, 0.95 * p, "start", 0, 600, "Manrope"))
+    q = out_expo(seg(t, 0.7, 0.5))
+    if q > 0:
+        out.append(arrow(520, 465, 640, 465, q, "#FF8A3D", 5, 0.9, head=14))
+    r = out_back(seg(t, 1.0, 0.5))
+    if r > 0:
+        out.append(rect(660, 400, 300, 200, 22, "none", BG_INK, 2, 0.45))
+        out.append(txt(690, 448, "final_reel_v2.mp4", 22, BG_INK, 0.95, "start", 0, 700, "Manrope"))
+        out.append(txt(690, 488, "40 секунд", 20, DIM, 0.75, "start", 2, 500))
+        chip = 220 * min(1, r)
+        out.append(rect(690, 530, chip, 46, 23, "url(#acc)", op=0.92))
+        out.append(txt(690 + chip / 2, 561, "готово", 19, "#1B1035", 0.95, "middle", 2, 700, "Manrope"))
+    return out
+
+
 KINDS = {
+    "iterate": iterate,
     "timeline_mess": timeline_mess, "prompt_one": prompt_one, "cc_logo": cc_logo,
-    "skills": skills, "skill_ffmpeg": skill_ffmpeg, "skill_remotion": skill_remotion,
+    "skills": skills, "skill_ffmpeg": skill_ffmpeg, "skill_whisper": skill_whisper,
+    "skill_remotion": skill_remotion, "skill_tts": skill_tts,
     "skill_transcript": skill_transcript, "render_cmd": render_cmd,
     "result": result, "nope": nope,
 
