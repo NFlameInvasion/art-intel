@@ -1270,7 +1270,7 @@ def cc_logo(t, dur, g1, g2, rms=None):
 def _skill_rows(t, active, dur):
     out = []
     names = ["FFMPEG", "WHISPER", "REMOTION", "TTS"]
-    subs = ["нарезка · паузы · звук", "слова · тайминги",
+    subs = ["нарезка · паузы · звук", "слова · время",
             "субтитры · анимация", "голос"]
     for i, nm in enumerate(names):
         p = out_cubic(seg(t, 0.06 + i * 0.1, 0.35))
