@@ -60,7 +60,8 @@ def split_phrases(text, n):
     if len(strong) == n:
         return strong
     fine = [p.strip() for p in re.split(r"(?<=[.!?:,])\s+|(?<=—)\s*", text) if p.strip()]
-    fine = [p for p in fine if re.search(r"[а-яА-ЯёЁ]", p)]
+    # латиница тоже считается текстом: иначе «Remotion:» и «TTS:» выпадали из кадра
+    fine = [p for p in fine if re.search(r"[A-Za-zА-Яа-яЁё0-9]", p)]
     if len(fine) == n:
         return fine
     if len(strong) > n:                      # склеиваем лишнее
