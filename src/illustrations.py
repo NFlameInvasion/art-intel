@@ -551,9 +551,9 @@ def logo(t, dur, g1, g2, rms=None):
     x, y = 540 - w / 2, 430
     out.append(rect(x, y, w, h, 34, "none", BG_INK, 2, 0.4 * min(1, p)))
     out.append(rect(x + 26, y + 26, 74, 26, 8, "url(#acc)", op=0.9 * min(1, p)))
-    out.append(txt(x + 63, y + 46, "АГЕНТ", 15, "#1B1035", 0.95 * min(1, p), "middle", 1, 800))
-    out.append(txt(540, y + 170, "ГЕРМЕС", 104, "url(#acc)", min(1, p), "middle", 0, 800, "Unbounded"))
-    out.append(txt(540, y + 236, "АГЕНТ", 54, BG_INK, 0.95 * min(1, p), "middle", 14, 800, "Unbounded"))
+    out.append(txt(x + 63, y + 46, "AGENT", 15, "#1B1035", 0.95 * min(1, p), "middle", 1, 800))
+    out.append(txt(540, y + 170, "HERMES", 96, "url(#acc)", min(1, p), "middle", 0, 800, "Unbounded"))
+    out.append(txt(540, y + 236, "AGENT", 54, BG_INK, 0.95 * min(1, p), "middle", 16, 800, "Unbounded"))
     q = out_cubic(seg(t, 0.9, 0.5))
     if q > 0:
         out.append(line(340, y + 268, 740, y + 268, BG_INK, 2, 0.18 * q))

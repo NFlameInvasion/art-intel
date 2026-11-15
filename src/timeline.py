@@ -19,7 +19,7 @@ TAIL = 1.45          # держим финальный кадр
 SCRIPT = json.load(open(os.path.join(EP, "script.json"), encoding="utf-8"))
 SCENES = [(s["scene"], s["audio"], s["text"]) for s in SCRIPT["scenes"]]
 
-VOWELS = set("аеёиоуыэюяАЕЁИОУЫЭЮЯ")
+VOWELS = set("аеёиоуыэюяАЕЁИОУЫЭЮЯaeiouyAEIOUY")   # латиница в имени бренда тоже считается
 
 
 def probe(path):
