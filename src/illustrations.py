@@ -1353,8 +1353,11 @@ def result(t, dur, g1, g2, rms=None):
     x, y = 540 - w / 2, 400
     out.append(rect(x, y, w, h, 26, "none", BG_INK, 2, 0.45))
     out.append(rect(x + 24, y + 24, 250, 190, 16, "#000000", BG_INK, 2, 0.25))
-    out.append(circle(x + 149, y + 120, 44 + 8 * math.sin(t * 3.2), "none", "url(#acc)", 2, 0.35))
-    out.append(f'<path d="M {x+164} {y+100} L {x+164} {y+140} L {x+196} {y+120} Z" fill="url(#acc)" opacity="0.95"/>')
+    # превью 250x190 от (x+24, y+24): центр (x+149, y+119); треугольник центруем по bbox
+    cx_, cy_ = x + 149, y + 119
+    out.append(circle(cx_, cy_, 44 + 8 * math.sin(t * 3.2), "none", "url(#acc)", 2, 0.35))
+    out.append(f'<path d="M {cx_-12:.1f} {cy_-20:.1f} L {cx_-12:.1f} {cy_+20:.1f} '
+               f'L {cx_+20:.1f} {cy_:.1f} Z" fill="url(#acc)" opacity="0.95"/>')
     out.append(txt(x + 300, y + 74, "final_reel.mp4", 26, BG_INK, 0.95, "start", 0, 700, "Manrope"))
     out.append(txt(x + 300, y + 116, "30.0 s · 1080×1920", 20, DIM, 0.8, "start", 2, 500))
     out.append(txt(x + 300, y + 158, "субтитры · музыка · бит", 20, DIM, 0.8, "start", 2, 500))
