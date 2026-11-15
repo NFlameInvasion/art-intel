@@ -928,10 +928,11 @@ def cron(t, dur, g1, g2, rms=None):
         out.append(txt(340, y + 62, lab, 26, BG_INK, 0.9 * p, "start", 0, 600, "Manrope"))
         q = out_cubic(seg(t, 0.35 + i * 0.4, 0.35))
         if q > 0:
-            # тумблер
-            out.append(rect(820, y + 36, 36 + 20 * q, 32, 16, "url(#acc)" if q > 0.6 else "none",
+            # тумблер: отступ от правого края 30 px, иначе липнет к рамке
+            tx = 794
+            out.append(rect(tx, y + 36, 56, 32, 16, "url(#acc)" if q > 0.6 else "none",
                             None if q > 0.6 else BG_INK, 0 if q > 0.6 else 2, 0.8))
-            out.append(circle(838 + 20 * q, y + 52, 11, "#1B1035" if q > 0.6 else BG_INK, op=0.9))
+            out.append(circle(tx + 16 + 24 * q, y + 52, 11, "#1B1035" if q > 0.6 else BG_INK, op=0.9))
     return out
 
 
