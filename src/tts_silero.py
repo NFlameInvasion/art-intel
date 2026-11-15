@@ -26,7 +26,7 @@ EP = os.environ.get("EPISODE_DIR") or ROOT
 if not os.path.isabs(EP):
     EP = os.path.join(ROOT, EP)
 SCRIPT = json.load(open(os.path.join(EP, "script.json"), encoding="utf-8"))
-SCENES = [(s["scene"], s["audio"], s["text"]) for s in SCRIPT["scenes"]]
+SCENES = [(s["scene"], s["audio"], s.get("tts") or s["text"], s["text"]) for s in SCRIPT["scenes"]]
 
 
 def ensure_model(path):
@@ -69,7 +69,11 @@ def synth_sentences(model, text, speaker, sr):
     parts = [p.strip() for p in SENT.split(text) if p.strip()]
     chunks = []
     for p in parts:
-        a = model.apply_tts(text=p, speaker=speaker, sample_rate=sr)
+        try:                      # v5: расстановка ударений штатная, «+» факультативен
+            a = model.apply_tts(text=p.replace("+", ""), speaker=speaker, sample_rate=sr,
+                                put_accent=True, put_yo=True)
+        except TypeError:
+            a = model.apply_tts(text=p.replace("+", ""), speaker=speaker, sample_rate=sr)
         x = a.numpy().astype(np.float32) if hasattr(a, "numpy") else np.asarray(a, dtype=np.float32)
         chunks.append(denoise_low(trim_edges(x, sr), sr))
     out = [np.zeros(int(LEAD * sr), dtype=np.float32)]
@@ -106,7 +110,9 @@ def main():
     if not os.path.isabs(out_dir):
         out_dir = os.path.join(ROOT, out_dir)
     os.makedirs(out_dir, exist_ok=True)
-    for _name, fn, text in SCENES:
+    for _name, fn, text, plain in SCENES:
+        if len(text.split()) != len(plain.split()):
+            print(f"  !! {fn}: слов в tts ({len(text.split())}) != в text ({len(plain.split())})")
         y = synth_sentences(model, text, args.speaker, SR)
         path = os.path.join(out_dir, fn)
         dur = len(y) / SR
@@ -116,7 +122,7 @@ def main():
             os.system(f'ffmpeg -y -v error -i "{path}" -filter:a atempo={args.speed} -ar {SR} "{tmp}"')
             os.replace(tmp, path)
             y = np.zeros(1)
-        print(f"{fn:14s} {dur:5.2f}s  {text[:46]}…")
+        print(f"{fn:14s} {dur:5.2f}s  {plain[:46]}…")
 
 
 if __name__ == "__main__":
