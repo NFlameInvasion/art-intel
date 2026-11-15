@@ -960,25 +960,52 @@ def code_fail(t, dur, g1, g2, rms=None):
 
 
 def loop(t, dur, g1, g2, rms=None):
-    """Копируй → вставь → правь → тесты, по кругу."""
+    """Копируй → вставь → правь → запусти: прямоугольный цикл со стрелками."""
     out = []
     steps_ = ["копирую", "вставляю", "правлю", "запускаю"]
-    cx, cy, R = 540, 560, 210
-    pos = [(cx - 260, cy - 90), (cx + 80, cy - 90), (cx + 80, cy + 90), (cx - 260, cy + 90)]
-    for i, (lab, (x, y)) in enumerate(zip(steps_, pos)):
-        p = out_back(seg(t, 0.1 + i * 0.3, 0.4))
+    W_, H_, BW, BH = 280, 80, 280, 80
+    L, Rr = 180, 900                    # симметрично: 180 px от краёв
+    T, B = 430, 610
+    boxes = [(L, T), (Rr - BW, T), (Rr - BW, B), (L, B)]
+    # путь: TL → TR → BR → BL (по часовой)
+    pts = [(L + BW, T + BH / 2), (Rr - BW, T + BH / 2), (Rr - BW, T + BH / 2), (Rr - BW, T + BH / 2)]
+    gx = 16                              # зазор между плашкой и стрелкой
+    arrows = [
+        (L + BW + gx, T + BH / 2, Rr - BW - gx, T + BH / 2),          # →
+        (Rr - BW / 2, T + BH + gx, Rr - BW / 2, B - gx),              # ↓
+        (Rr - BW - gx, B + BH / 2, L + BW + gx, B + BH / 2),          # ←
+        (L + BW / 2, B - gx, L + BW / 2, T + BH + gx),                # ↑
+    ]
+    # какой шаг сейчас «горит»: бегущий импульс по периметру
+    tt = (t * 0.42) % 4.0
+    active = int(tt) if t > 1.2 else -1
+
+    for i, (x, y) in enumerate(boxes):
+        p = out_back(seg(t, 0.1 + i * 0.22, 0.4))
         if p <= 0:
             continue
-        bw = 260 * min(1, p)
-        out.append(rect(x, y, bw, 80, 40, "none", BG_INK, 2, 0.5))
-        out.append(txt(x + bw / 2, y + 50, lab, 26, BG_INK, 0.9 * min(1, p), "middle", 1, 600, "Manrope"))
-    # дуга по кругу
-    pr = out_cubic(seg(t, 1.0, 1.4))
-    if pr > 0:
-        out.append(f'<circle cx="{cx}" cy="{cy}" r="{R - 40}" fill="none" stroke="url(#acc)" '
-                   f'stroke-width="3" stroke-dasharray="{(2*math.pi*(R-40)):.0f}" '
-                   f'stroke-dashoffset="{(2*math.pi*(R-40))*(1-pr):.0f}" opacity="0.55" '
-                   f'transform="rotate(-90 {cx} {cy})"/>')
+        on = i == active
+        out.append(rect(x, y, BW, BH, 40,
+                        "url(#acc)" if on else "#FFFFFF",
+                        None if on else BG_INK,
+                        0 if on else 2,
+                        0.92 if on else 0.10))
+        out.append(txt(x + BW / 2, y + BH / 2 + 9, steps_[i], 26,
+                       "#1B1035" if on else BG_INK, 0.95, "middle", 1, 600, "Manrope"))
+
+    for i, (x1, y1, x2, y2) in enumerate(arrows):
+        q = out_expo(seg(t, 0.25 + i * 0.28, 0.45))
+        if q > 0:
+            out.append(arrow(x1, y1, x2, y2, q, BG_INK, 4, 0.55, head=14))
+
+    # бегущая точка по тому же прямоугольнику
+    if t > 1.4:
+        k = (t * 0.42) % 4.0
+        seg_i = int(k)
+        f = k - seg_i
+        a = arrows[seg_i]
+        px, py = a[0] + (a[2] - a[0]) * f, a[1] + (a[3] - a[1]) * f
+        out.append(circle(px, py, 6, "url(#acc)", op=0.95))
     return out
 
 
@@ -1060,20 +1087,21 @@ def modes(t, dur, g1, g2, rms=None):
     """Три режима работы."""
     out = []
     rows = [("СТАНДАРТНЫЙ", "повседневные задачи"),
+            ("PTC", "оркестрация кодом"),
             ("МИНИМАЛЬНЫЙ", "максимальная скорость"),
             ("ТВОРЧЕСКИЙ", "лаборатория плагинов")]
     for i, (name, sub) in enumerate(rows):
-        p = out_cubic(seg(t, 0.1 + i * 0.35, 0.4))
+        p = out_cubic(seg(t, 0.1 + i * 0.28, 0.35))
         if p <= 0:
             continue
-        y = 370 + i * 140
-        on = i == 2
-        out.append(rect(100, y, 780 * p, 116, 20, "url(#acc)" if (on and t > 1.2) else "none",
-                        None if (on and t > 1.2) else BG_INK, 0 if (on and t > 1.2) else 2,
-                        0.9 if (on and t > 1.2) else 0.45))
-        col = "#1B1035" if (on and t > 1.2) else BG_INK
-        out.append(txt(126, y + 50, name, 24, col, 0.95 * p, "start", 3, 800, "Unbounded"))
-        out.append(txt(126, y + 86, sub, 20, col, 0.7 * p, "start", 1, 500, "Manrope"))
+        y = 356 + i * 118
+        on = i == 3
+        out.append(rect(100, y, 780 * p, 104, 20, "url(#acc)" if (on and t > 1.4) else "none",
+                        None if (on and t > 1.4) else BG_INK, 0 if (on and t > 1.4) else 2,
+                        0.9 if (on and t > 1.4) else 0.45))
+        col = "#1B1035" if (on and t > 1.4) else BG_INK
+        out.append(txt(126, y + 46, name, 23, col, 0.95 * p, "start", 3, 800, "Unbounded"))
+        out.append(txt(126, y + 80, sub, 19, col, 0.7 * p, "start", 1, 500, "Manrope"))
     return out
 
 
@@ -1142,7 +1170,17 @@ def arch(t, dur, g1, g2, rms=None):
         if q <= 0:
             continue
         bw = 200 * q
-        out.append(line(cx, cy, x, y, BG_INK, 2, 0.25 * q))
+        # линия только между границами: центр. карточка 220x104, блок 200x68
+        dx, dy = x - cx, y - cy
+        L = math.hypot(dx, dy) or 1.0
+        ux, uy = dx / L, dy / L
+        t0 = min(118 / abs(ux) if abs(ux) > 1e-6 else 1e9,
+                 60 / abs(uy) if abs(uy) > 1e-6 else 1e9)
+        t1 = min(110 / abs(ux) if abs(ux) > 1e-6 else 1e9,
+                 44 / abs(uy) if abs(uy) > 1e-6 else 1e9)
+        sx_, sy_ = cx + ux * (t0 + 6), cy + uy * (t0 + 6)
+        ex_, ey_ = x - ux * (t1 + 6), y - uy * (t1 + 6)
+        out.append(line(sx_, sy_, sx_ + (ex_ - sx_) * q, sy_ + (ey_ - sy_) * q, BG_INK, 2, 0.3 * q))
         out.append(rect(x - bw / 2, y - 34, bw, 68, 18, "none", BG_INK, 2, 0.45))
         out.append(txt(x, y + 8, lab, 19, BG_INK, 0.85 * q, "middle", 1, 600, "Manrope"))
     return out
