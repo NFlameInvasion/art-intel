@@ -936,7 +936,223 @@ def cron(t, dur, g1, g2, rms=None):
     return out
 
 
+
+# ---------- обзор DeepSeek Harness ----------
+def code_fail(t, dur, g1, g2, rms=None):
+    """Чат выдал код, в редакторе — красные ошибки."""
+    out = []
+    p = out_cubic(seg(t, 0.1, 0.45))
+    if p > 0:
+        out.append(_card(100, 350, 520, 180, p, 0.25))
+        out.append(txt(126, 388, "МОДЕЛЬ", 16, DIM, 0.85 * p, "start", 4, 700))
+        for k, w in enumerate((300, 240, 280)):
+            out.append(rect(126, 412 + k * 34, w * p, 12, 6, BG_INK, op=0.28))
+    q = out_cubic(seg(t, 0.9, 0.5))
+    if q > 0:
+        out.append(rect(600, 420, 380 * min(1, q), 330, 18, "#000000", BG_INK, 2, 0.25))
+        for k, w in enumerate((250, 300, 200, 270, 230)):
+            out.append(rect(624, 452 + k * 44, w * min(1, q), 12, 6, BG_INK, op=0.22))
+        for k in range(3):
+            blink = 0.4 + 0.6 * max(0.0, math.sin(t * 5 + k * 1.4))
+            out.append(circle(948, 458 + k * 88, 7, "#FF5C5C", op=0.9 * blink))
+            out.append(rect(948 - 6, 458 + k * 88 - 20, 12, 40, 6, "#FF5C5C", op=0.12 * blink))
+    return out
+
+
+def loop(t, dur, g1, g2, rms=None):
+    """Копируй → вставь → правь → тесты, по кругу."""
+    out = []
+    steps_ = ["копирую", "вставляю", "правлю", "запускаю"]
+    cx, cy, R = 540, 560, 210
+    pos = [(cx - 260, cy - 90), (cx + 80, cy - 90), (cx + 80, cy + 90), (cx - 260, cy + 90)]
+    for i, (lab, (x, y)) in enumerate(zip(steps_, pos)):
+        p = out_back(seg(t, 0.1 + i * 0.3, 0.4))
+        if p <= 0:
+            continue
+        bw = 260 * min(1, p)
+        out.append(rect(x, y, bw, 80, 40, "none", BG_INK, 2, 0.5))
+        out.append(txt(x + bw / 2, y + 50, lab, 26, BG_INK, 0.9 * min(1, p), "middle", 1, 600, "Manrope"))
+    # дуга по кругу
+    pr = out_cubic(seg(t, 1.0, 1.4))
+    if pr > 0:
+        out.append(f'<circle cx="{cx}" cy="{cy}" r="{R - 40}" fill="none" stroke="url(#acc)" '
+                   f'stroke-width="3" stroke-dasharray="{(2*math.pi*(R-40)):.0f}" '
+                   f'stroke-dashoffset="{(2*math.pi*(R-40))*(1-pr):.0f}" opacity="0.55" '
+                   f'transform="rotate(-90 {cx} {cy})"/>')
+    return out
+
+
+def term_idle(t, dur, g1, g2, rms=None):
+    """Пустой терминал: курсор мигает, делать нечего."""
+    out = []
+    p = out_cubic(seg(t, 0.08, 0.4))
+    if p <= 0:
+        return out
+    out.append(rect(100, 400, 880 * min(1, p), 320, 20, "#000000", BG_INK, 2, 0.25))
+    if p > 0.8:
+        for k in range(3):
+            out.append(circle(134 + k * 24, 432, 6, BG_INK, op=0.3))
+    q = out_cubic(seg(t, 0.6, 0.4))
+    out.append(txt(134, 520, "~", 26, "url(#acc)", 0.95 * q, "start", 0, 700))
+    if (t * 2) % 1 < 0.55:
+        out.append(rect(160, 498, 18, 30, 3, BG_INK, op=0.85))
+    out.append(txt(134, 640, "агент не запущен", 20, DIM, 0.55 * q, "start", 2, 500, "Manrope"))
+    return out
+
+
+def logo_dsh(t, dur, g1, g2, rms=None):
+    out = []
+    p = out_back(seg(t, 0.15, 0.6))
+    if p <= 0:
+        return out
+    w, h = 800 * (0.94 + 0.06 * min(1, p)), 360
+    x, y = 540 - w / 2, 420
+    out.append(rect(x, y, w, h, 34, "none", BG_INK, 2, 0.4 * min(1, p)))
+    out.append(txt(540, y + 132, "DEEPSEEK", 82, "url(#acc)", min(1, p), "middle", 0, 800, "Unbounded"))
+    out.append(txt(540, y + 208, "HARNESS", 62, BG_INK, 0.96 * min(1, p), "middle", 10, 800, "Unbounded"))
+    q = out_cubic(seg(t, 0.8, 0.5))
+    if q > 0:
+        out.append(line(360, y + 248, 720, y + 248, BG_INK, 2, 0.18 * q))
+        out.append(txt(540, y + 292, "everything is a plugin", 22, DIM, 0.85 * q, "middle", 2, 500, "Manrope"))
+    return out
+
+
+def models_dsh(t, dur, g1, g2, rms=None):
+    out = []
+    items = ["DeepSeek", "OpenAI", "Claude", "локальная LLM"]
+    for i, lab in enumerate(items):
+        p = out_back(seg(t, 0.1 + i * 0.18, 0.45))
+        if p <= 0:
+            continue
+        cx, cy = 300 if i % 2 == 0 else 780, 450 + (i // 2) * 210
+        bw = 300 * min(1, p)
+        active = i == int((t * 0.7) % 4)
+        out.append(rect(cx - bw / 2, cy - 60, bw, 120, 22,
+                        "url(#acc)" if active else "none", None if active else BG_INK,
+                        0 if active else 2, 0.92 if active else 0.5))
+        out.append(txt(cx, cy + 4, lab, 30 if len(lab) < 8 else 22,
+                       "#1B1035" if active else BG_INK, 0.95, "middle", 1, 700,
+                       "Unbounded" if len(lab) < 8 else "Manrope"))
+        if active:
+            out.append(txt(cx, cy + 34, "выбрана", 15, "#1B1035", 0.65, "middle", 3, 600))
+    return out
+
+
+def plugins(t, dur, g1, g2, rms=None):
+    """Всё — плагины: плитки складываются в решётку."""
+    out = []
+    labels = ["МОДЕЛИ", "ИНСТРУМЕНТЫ", "САНДБОКС", "СЕССИИ", "ПАМЯТЬ", "UI"]
+    w, h, gx, gy = 270, 130, 20, 20
+    for i in range(6):
+        p = out_back(seg(t, 0.08 + i * 0.13, 0.45))
+        if p <= 0:
+            continue
+        cx, cy = i % 3, i // 3
+        x = 100 + cx * (w + gx)
+        y = 380 + cy * (h + gy) + (1 - min(1, p)) * 30
+        out.append(rect(x, y, w * min(1, p), h, 16, "none", BG_INK, 2, 0.5))
+        out.append(rect(x + 18, y + 20, 44, 8, 4, "url(#acc)", op=0.9 * min(1, p)))
+        out.append(txt(x + 18, y + 84, labels[i], 21, BG_INK, 0.9 * min(1, p), "start", 2, 600))
+    return out
+
+
+def modes(t, dur, g1, g2, rms=None):
+    """Три режима работы."""
+    out = []
+    rows = [("СТАНДАРТНЫЙ", "повседневные задачи"),
+            ("МИНИМАЛЬНЫЙ", "максимальная скорость"),
+            ("ТВОРЧЕСКИЙ", "лаборатория плагинов")]
+    for i, (name, sub) in enumerate(rows):
+        p = out_cubic(seg(t, 0.1 + i * 0.35, 0.4))
+        if p <= 0:
+            continue
+        y = 370 + i * 140
+        on = i == 2
+        out.append(rect(100, y, 780 * p, 116, 20, "url(#acc)" if (on and t > 1.2) else "none",
+                        None if (on and t > 1.2) else BG_INK, 0 if (on and t > 1.2) else 2,
+                        0.9 if (on and t > 1.2) else 0.45))
+        col = "#1B1035" if (on and t > 1.2) else BG_INK
+        out.append(txt(126, y + 50, name, 24, col, 0.95 * p, "start", 3, 800, "Unbounded"))
+        out.append(txt(126, y + 86, sub, 20, col, 0.7 * p, "start", 1, 500, "Manrope"))
+    return out
+
+
+def plugindev(t, dur, g1, g2, rms=None):
+    """Просишь плагин словами — агент пишет код и ставит его."""
+    out = []
+    p = out_cubic(seg(t, 0.1, 0.4))
+    if p > 0:
+        out.append(_card(100, 350, 420, 110, p, 0.25))
+        out.append(txt(126, 392, "ты", 15, DIM, 0.8 * p, "start", 4, 700))
+        out.append(txt(126, 428, "сделай плагин таймера", 23, BG_INK, 0.95 * p, "start", 0, 600, "Manrope"))
+    q = out_cubic(seg(t, 0.7, 0.4))
+    if q > 0:
+        out.append(rect(560, 350, 420 * min(1, q), 330, 18, "#000000", BG_INK, 2, 0.25))
+        out.append(txt(584, 386, "timer.ts", 17, DIM, 0.8 * q, "start", 2, 500))
+        lines = ["export const timer =", "  defineTool({", '    name: "timer",', "    run: () => ...", "  })"]
+        for i, ln in enumerate(lines):
+            t0 = 0.9 + i * 0.35
+            if t < t0:
+                break
+            n = int(max(0, t - t0) * 48)
+            out.append(txt(584, 428 + i * 40, ln[:n], 18, BG_INK, 0.92, "start", 0, 500))
+    r = out_expo(seg(t, 2.6, 0.5))
+    if r > 0:
+        bw = 300 * r
+        out.append(rect(540 - bw / 2, 718, bw, 52, 26, "url(#acc)", op=0.92))
+        out.append(txt(540, 752, "✓ плагин установлен", 20, "#1B1035", 0.95, "middle", 1, 700, "Manrope"))
+    return out
+
+
+def testrun(t, dur, g1, g2, rms=None):
+    """Тесты в терминале становятся зелёными."""
+    out = []
+    p = out_cubic(seg(t, 0.08, 0.4))
+    if p <= 0:
+        return out
+    out.append(rect(100, 350, 880 * min(1, p), 400, 18, "#000000", BG_INK, 2, 0.25))
+    if p > 0.8:
+        for k in range(3):
+            out.append(circle(132 + k * 24, 382, 6, BG_INK, op=0.3))
+        out.append(txt(230, 389, "pnpm test", 18, DIM, 0.75, "start", 2, 500))
+    tests = [("✓ auth", 0.5), ("✓ plugins", 0.95), ("✓ sandbox", 1.4), ("✓ tools", 1.85)]
+    for i, (lab, t0) in enumerate(tests):
+        q = out_cubic(seg(t, t0, 0.3))
+        if q <= 0:
+            continue
+        out.append(txt(134, 450 + i * 52, lab, 22, "url(#acc)", 0.95 * q, "start", 1, 600))
+    r = out_expo(seg(t, 2.4, 0.5))
+    if r > 0:
+        out.append(txt(134, 700, "12 passed · 0 failed", 26, "#FFFFFF", 0.9 * r, "start", 1, 700, "Manrope"))
+    return out
+
+
+def arch(t, dur, g1, g2, rms=None):
+    """Архитектура вместо копипаста."""
+    out = []
+    cx, cy = 540, 560
+    p = out_back(seg(t, 0.1, 0.5))
+    if p > 0:
+        out.append(rect(cx - 110, cy - 52, 220 * min(1, p), 104, 24, "url(#acc)", op=0.94))
+        out.append(txt(cx, cy + 8, "АРХИТЕКТУРА", 22, "#1B1035", 0.97 * min(1, p), "middle", 2, 800))
+    labels = ["модель", "инструменты", "песочница", "память"]
+    pos = [(cx - 320, cy - 120), (cx + 320, cy - 120), (cx - 320, cy + 120), (cx + 320, cy + 120)]
+    for i, (lab, (x, y)) in enumerate(zip(labels, pos)):
+        q = out_cubic(seg(t, 0.5 + i * 0.18, 0.4))
+        if q <= 0:
+            continue
+        bw = 200 * q
+        out.append(line(cx, cy, x, y, BG_INK, 2, 0.25 * q))
+        out.append(rect(x - bw / 2, y - 34, bw, 68, 18, "none", BG_INK, 2, 0.45))
+        out.append(txt(x, y + 8, lab, 19, BG_INK, 0.85 * q, "middle", 1, 600, "Manrope"))
+    return out
+
+
 KINDS = {
+    "code_fail": code_fail, "loop": loop, "term_idle": term_idle, "logo_dsh": logo_dsh,
+    "models_dsh": models_dsh, "plugins": plugins, "modes": modes,
+    "plugindev": plugindev, "testrun": testrun, "arch": arch,
+
     "chaos": chaos, "collapse": collapse, "net": net, "handled": handled,
     "always_on": always_on, "install": install, "models": models,
     "router": router, "dashboard": dashboard, "cron": cron,

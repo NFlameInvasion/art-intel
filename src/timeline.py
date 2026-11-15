@@ -11,9 +11,9 @@ AUD = os.environ.get("AUDIO_DIR") or os.path.join(EP, "audio")
 if not os.path.isabs(AUD):
     AUD = os.path.join(ROOT, AUD)
 FPS = 30
-LEAD = 0.35          # тишина перед первой репликой
-GAP = 0.35           # пауза между сценами
-TAIL = 1.45          # держим финальный кадр
+LEAD = float(os.environ.get("LEAD", 0.35))   # тишина перед первой репликой
+GAP = float(os.environ.get("GAP", 0.35))     # пауза между сценами
+TAIL = float(os.environ.get("TAIL", 1.45))   # держим финальный кадр
 
 # тексты сцен — один источник правды: script.json
 SCRIPT = json.load(open(os.path.join(EP, "script.json"), encoding="utf-8"))
