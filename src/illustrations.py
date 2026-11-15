@@ -1186,7 +1186,186 @@ def arch(t, dur, g1, g2, rms=None):
     return out
 
 
+
+# ---------- монтаж кодом ----------
+def timeline_mess(t, dur, g1, g2, rms=None):
+    """Перегруженный таймлайн монтажки и тикающие часы."""
+    out = []
+    p = out_cubic(seg(t, 0.05, 0.4))
+    if p <= 0:
+        return out
+    out.append(rect(100, 350, 880, 400, 18, "#000000", BG_INK, 2, 0.22))
+    # дорожки
+    for tr in range(3):
+        y = 386 + tr * 110
+        out.append(txt(126, y + 22, ["V1", "A1", "S1"][tr], 16, DIM, 0.7, "start", 2, 500))
+        out.append(line(170, y + 40, 950, y + 40, BG_INK, 1, 0.12))
+        x = 176
+        k = 0
+        while x < 940:
+            w = 34 + 46 * ((tr * 7 + k * 5) % 4)
+            on = (tr * 3 + k) % 4 == 0
+            out.append(rect(x, y + 6, w, 40, 6, "url(#acc)" if on else BG_INK,
+                            op=0.55 if on else 0.16))
+            x += w + 8
+            k += 1
+    # плейхед
+    ph = 180 + (t / max(0.01, dur)) * 760
+    out.append(line(ph, 366, ph, 736, "#FF8A3D", 2, 0.9))
+    clock = 2 * 3600 + 14 * 60 + int(t * 37)
+    out.append(txt(946, 322, f"{clock // 3600:02d}:{clock % 3600 // 60:02d}:{clock % 60:02d}",
+                   22, DIM, 0.75, "end", 3, 600))
+    return out
+
+
+def prompt_one(t, dur, g1, g2, rms=None):
+    """Исходник в папке и один запрос в терминале."""
+    out = []
+    p = out_cubic(seg(t, 0.1, 0.4))
+    if p > 0:
+        out.append(rect(100, 348, 300, 66, 16, "none", BG_INK, 2, 0.45))
+        out.append(txt(126, 390, "▣ input.mp4", 20, BG_INK, 0.85, "start", 1, 500))
+    q = out_cubic(seg(t, 0.5, 0.4))
+    if q <= 0:
+        return out
+    out.append(rect(100, 460, 880 * min(1, q), 260, 18, "#000000", BG_INK, 2, 0.25))
+    if q > 0.8:
+        for k in range(3):
+            out.append(circle(132 + k * 24, 492, 6, BG_INK, op=0.3))
+        out.append(txt(230, 499, "claude", 18, DIM, 0.7, "start", 2, 500))
+    line_txt = "> сделай из этого ролик"
+    n = int(max(0, t - 0.8) * 42)
+    out.append(txt(134, 590, line_txt[:n], 26, BG_INK, 0.95, "start", 0, 500))
+    if (t * 2) % 1 < 0.55:
+        out.append(rect(140 + min(len(line_txt), n) * 14, 566, 14, 30, 3, "url(#acc)", op=0.9))
+    return out
+
+
+def cc_logo(t, dur, g1, g2, rms=None):
+    out = []
+    p = out_back(seg(t, 0.12, 0.55))
+    if p <= 0:
+        return out
+    w, h = 780 * (0.94 + 0.06 * min(1, p)), 320
+    x, y = 540 - w / 2, 430
+    out.append(rect(x, y, w, h, 32, "none", BG_INK, 2, 0.4 * min(1, p)))
+    out.append(txt(x + 30, y + 52, "CLAUDE", 30, DIM, 0.85, "start", 6, 700, "Unbounded"))
+    out.append(txt(540, y + 168, "CLAUDE CODE", 62, "url(#acc)", min(1, p), "middle", 4, 800, "Unbounded"))
+    out.append(rect(x + 30, y + 216, 168, 44, 22, "none", BG_INK, 2, 0.5))
+    out.append(txt(x + 114, y + 245, "skills", 20, BG_INK, 0.85, "middle", 2, 600, "Manrope"))
+    out.append(txt(x + 220, y + 245, "агент в терминале", 20, DIM, 0.7, "start", 1, 500, "Manrope"))
+    return out
+
+
+def _skill_rows(t, active, dur):
+    out = []
+    names = ["FFMPEG", "REMOTION", "TRANSCRIPT"]
+    subs = ["нарезка · паузы · звук", "субтитры · переходы", "хуки · тайминг"]
+    for i, nm in enumerate(names):
+        p = out_cubic(seg(t, 0.08 + i * 0.12, 0.4))
+        if p <= 0:
+            continue
+        y = 380 + i * 140
+        on = i == active
+        out.append(rect(100, y, 780, 118, 20,
+                        "url(#acc)" if on else "none", None if on else BG_INK,
+                        0 if on else 2, 0.92 if on else 0.4))
+        col = "#1B1035" if on else BG_INK
+        out.append(txt(130, y + 56, nm, 30, col, 0.95 * p, "start", 4, 800, "JetBrains Mono"))
+        out.append(txt(130, y + 94, subs[i], 20, col, 0.7 * p, "start", 1, 500, "Manrope"))
+    return out
+
+
+def skills(t, dur, g1, g2, rms=None):
+    return _skill_rows(t, -1, dur)
+
+
+def skill_ffmpeg(t, dur, g1, g2, rms=None):
+    return _skill_rows(t, 0, dur)
+
+
+def skill_remotion(t, dur, g1, g2, rms=None):
+    return _skill_rows(t, 1, dur)
+
+
+def skill_transcript(t, dur, g1, g2, rms=None):
+    return _skill_rows(t, 2, dur)
+
+
+def render_cmd(t, dur, g1, g2, rms=None):
+    """npm run build и полоса прогресса."""
+    out = []
+    p = out_cubic(seg(t, 0.08, 0.4))
+    if p <= 0:
+        return out
+    out.append(rect(100, 360, 880 * min(1, p), 340, 18, "#000000", BG_INK, 2, 0.25))
+    if p > 0.8:
+        for k in range(3):
+            out.append(circle(132 + k * 24, 392, 6, BG_INK, op=0.3))
+    cmd = "$ npm run build"
+    n = int(max(0, t - 0.35) * 44)
+    out.append(txt(134, 470, cmd[:n], 26, "url(#acc)", 0.95, "start", 0, 600))
+    q = out_cubic(seg(t, 0.9, 1.6))
+    if q > 0:
+        bw = 700
+        out.append(rect(134, 520, bw, 18, 9, BG_INK, op=0.12))
+        out.append(rect(134, 520, bw * q, 18, 9, "url(#acc)", op=0.95))
+        out.append(txt(134, 585, f"рендер {int(q * 100)}%", 22, DIM, 0.85, "start", 2, 500))
+    r = out_expo(seg(t, 2.4, 0.5))
+    if r > 0:
+        out.append(txt(134, 655, "✓ final_reel.mp4", 26, "url(#acc)", 0.95 * r, "start", 1, 700, "Manrope"))
+    return out
+
+
+def result(t, dur, g1, g2, rms=None):
+    """Готовый файл: превью и метаданные."""
+    out = []
+    p = out_back(seg(t, 0.1, 0.5))
+    if p <= 0:
+        return out
+    w, h = 760 * min(1, p), 380
+    x, y = 540 - w / 2, 400
+    out.append(rect(x, y, w, h, 26, "none", BG_INK, 2, 0.45))
+    out.append(rect(x + 24, y + 24, 250, 190, 16, "#000000", BG_INK, 2, 0.25))
+    out.append(f'<path d="M {x+164} {y+100} L {x+164} {y+140} L {x+196} {y+120} Z" fill="url(#acc)" opacity="0.95"/>')
+    out.append(txt(x + 300, y + 74, "final_reel.mp4", 26, BG_INK, 0.95, "start", 0, 700, "Manrope"))
+    out.append(txt(x + 300, y + 116, "30.0 s · 1080×1920", 20, DIM, 0.8, "start", 2, 500))
+    out.append(txt(x + 300, y + 158, "субтитры · музыка · бит", 20, DIM, 0.8, "start", 2, 500))
+    q = out_cubic(seg(t, 0.8, 0.6))
+    if q > 0:
+        bw = 300 * q
+        out.append(rect(x + 24, y + 246, bw, 56, 28, "url(#acc)", op=0.92))
+        out.append(txt(x + 24 + bw / 2, y + 282, "открыть", 22, "#1B1035", 0.95, "middle", 2, 700, "Manrope"))
+    return out
+
+
+def nope(t, dur, g1, g2, rms=None):
+    """Вычеркнутые CapCut и рутина."""
+    out = []
+    items = ["CapCut", "рутина", "таймлайн"]
+    for i, lab in enumerate(items):
+        p = out_cubic(seg(t, 0.1 + i * 0.22, 0.4))
+        if p <= 0:
+            continue
+        y = 400 + i * 110
+        out.append(rect(120, y, 420, 78, 39, "none", BG_INK, 2, 0.45))
+        out.append(txt(330, y + 50, lab, 28, BG_INK, 0.75, "middle", 1, 600, "Manrope"))
+        q = out_expo(seg(t, 0.4 + i * 0.22, 0.45))
+        if q > 0:
+            out.append(line(150, y + 40, 150 + 360 * q, y + 40, "#FF5C5C", 4, 0.85))
+    p = out_back(seg(t, 1.1, 0.5))
+    if p > 0:
+        out.append(rect(600, 470, 320, 120, 24, "url(#acc)", op=0.92 * min(1, p)))
+        out.append(txt(760, 546, "автор", 34, "#1B1035", 0.97 * min(1, p), "middle", 2, 800, "Unbounded"))
+    return out
+
+
 KINDS = {
+    "timeline_mess": timeline_mess, "prompt_one": prompt_one, "cc_logo": cc_logo,
+    "skills": skills, "skill_ffmpeg": skill_ffmpeg, "skill_remotion": skill_remotion,
+    "skill_transcript": skill_transcript, "render_cmd": render_cmd,
+    "result": result, "nope": nope,
+
     "code_fail": code_fail, "loop": loop, "term_idle": term_idle, "logo_dsh": logo_dsh,
     "models_dsh": models_dsh, "plugins": plugins, "modes": modes,
     "plugindev": plugindev, "testrun": testrun, "arch": arch,
