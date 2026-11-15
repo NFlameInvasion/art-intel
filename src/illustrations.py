@@ -436,21 +436,24 @@ def _check(cx, cy, p, color=None):
 
 
 def handoff(t, dur, g1, g2, rms=None):
-    """Чат: модель отвечает кодом, а запускать его тебе."""
+    """Два блока рядом: ты слева, нейросеть справа, стрелка слева направо."""
     out = []
+    # блоки друг под другом, стрелка сверху вниз
+    x, w = 170, 740
     p1 = out_cubic(seg(t, 0.15, 0.5))
     if p1 > 0:
-        out.append(_card(110, 380 + (1 - p1) * -14, 560, 132, p1, 0.25))
-        out.append(txt(140, 424, "ТЫ", 18, DIM, 0.9 * p1, "start", 4, 700))
-        out.append(txt(140, 472, "разбери двести строк логов", 26, BG_INK, 0.95 * p1, "start", 0, 600, "Manrope"))
+        out.append(_card(x, 340 + (1 - p1) * -14, w, 160, p1, 0.25))
+        out.append(txt(x + 26, 386, "ТЫ", 16, DIM, 0.9 * p1, "start", 4, 700))
+        out.append(txt(x + 26, 446, "разбери двести строк логов", 26, BG_INK, 0.95 * p1, "start", 0, 600, "Manrope"))
+    p3 = out_expo(seg(t, 0.9, 0.55))
+    if p3 > 0:
+        out.append(arrow(540, 512, 540, 566, p3, "#FF8A3D", 5, 0.95, head=16))
     p2 = out_cubic(seg(t, 1.35, 0.5))
     if p2 > 0:
-        out.append(_card(410, 570 + (1 - p2) * 14, 570, 180, p2, 0.9))
-        out.append(txt(440, 614, "НЕЙРОСЕТЬ", 18, "#1B1035", 0.85 * p2, "start", 4, 700))
-        out.append(txt(440, 664, "вот готовый скрипт", 27, "#1B1035", 0.96 * p2, "start", 0, 600, "Manrope"))
-        out.append(txt(440, 712, "запусти сам", 27, "#1B1035", 0.96 * p2, "start", 0, 700, "Manrope"))
-    p3 = out_expo(seg(t, 2.5, 0.6))
-    out.append(arrow(600, 540, 700, 560, p3, "#FF8A3D", 4, 0.9, head=14))
+        out.append(_card(x, 590 + (1 - p2) * 14, w, 180, p2, 0.9))
+        out.append(txt(x + 26, 636, "НЕЙРОСЕТЬ", 16, "#1B1035", 0.85 * p2, "start", 4, 700))
+        out.append(txt(x + 26, 692, "вот готовый скрипт", 26, "#1B1035", 0.96 * p2, "start", 0, 600, "Manrope"))
+        out.append(txt(x + 26, 738, "запусти сам", 26, "#1B1035", 0.96 * p2, "start", 0, 700, "Manrope"))
     return out
 
 
